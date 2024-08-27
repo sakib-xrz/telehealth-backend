@@ -3,7 +3,7 @@ const catchAsync = require('../../shared/catchAsync.js');
 const sendResponse = require('../../shared/sendResponse.js');
 const httpStatus = require('http-status');
 const { UserRole } = require('@prisma/client');
-const { handelFile } = require('../../helpers/handelFile.js');
+const handelFile = require('../../helpers/handelFile.js');
 const config = require('../../config/index.js');
 const prisma = require('../../shared/prisma.js');
 
@@ -63,7 +63,8 @@ const createAdmin = catchAsync(async (req, res) => {
             });
 
             return {
-                id: user.id,
+                id: admin.id,
+                userId: user.id,
                 name: admin.name,
                 email: user.email,
                 contactNumber: admin.contactNumber,

@@ -9,6 +9,8 @@ const {
 } = require('../../constants/admin.constant.js');
 const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
 const ApiError = require('../../error/ApiError.js');
+const handelFile = require('../../helpers/handelFile.js');
+const { UserStatus } = require('@prisma/client');
 
 const getAdmins = catchAsync(async (req, res) => {
     const filters = pick(req.query, adminFilterableFields);
@@ -114,10 +116,103 @@ const updateAdmin = catchAsync(async (req, res) => {
     });
 });
 
+const deleteAdmin = catchAsync(async (req, res) => {
+    const adminId = req.params.id;
+
+    const isAdminExists = await prisma.admin.findUnique({
+        where: {
+            id: adminId
+        },
+        include: {
+            user: true
+        }
+    });
+
+    if (!isAdminExists) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found');
+    }
+
+    await prisma.$transaction(async transactionClient => {
+        await transactionClient.admin.delete({
+            where: {
+                id: adminId
+            }
+        });
+
+        await transactionClient.user.delete({
+            where: {
+                id: isAdminExists.user.id
+            }
+        });
+
+        await handelFile.deleteFromCloudinary([
+            `user/admin/${isAdminExists.user.id}`
+        ]);
+
+        return;
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Admin deleted successfully',
+        data: null
+    });
+});
+
+const softDeleteAdmin = catchAsync(async (req, res) => {
+    const adminId = req.params.id;
+
+    const isAdminExists = await prisma.admin.findUnique({
+        where: {
+            id: adminId,
+            isDeleted: false
+        },
+        include: {
+            user: true
+        }
+    });
+
+    if (!isAdminExists) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found');
+    }
+
+    await prisma.$transaction(async transactionClient => {
+        await transactionClient.admin.update({
+            where: {
+                id: adminId
+            },
+            data: {
+                isDeleted: true
+            }
+        });
+
+        await transactionClient.user.update({
+            where: {
+                id: isAdminExists.user.id
+            },
+            data: {
+                status: UserStatus.DELETED
+            }
+        });
+
+        return;
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Admin deleted successfully',
+        data: null
+    });
+});
+
 const AdminController = {
     getAdmins,
     getAdmin,
-    updateAdmin
+    updateAdmin,
+    deleteAdmin,
+    softDeleteAdmin
 };
 
 module.exports = AdminController;

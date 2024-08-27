@@ -8,6 +8,11 @@ router.route('/').get(AdminController.getAdmins);
 router
     .route('/:id')
     .get(AdminController.getAdmin)
-    .patch(AdminController.updateAdmin);
+    .patch(AdminController.updateAdmin)
+    .delete(AdminController.deleteAdmin);
+
+router
+    .route('/soft-delete/:id')
+    .delete(AdminController.softDeleteAdmin);
 
 module.exports = router;
