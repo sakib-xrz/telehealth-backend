@@ -3,14 +3,14 @@ const sendResponse = require('../../shared/sendResponse.js');
 const httpStatus = require('http-status');
 const prisma = require('../../shared/prisma.js');
 const pick = require('../../shared/pick.js');
-const {
-    adminFilterableFields,
-    adminSearchAbleFields
-} = require('../../constants/admin.constant.js');
 const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
 const ApiError = require('../../error/ApiError.js');
 const handelFile = require('../../helpers/handelFile.js');
 const { UserStatus } = require('@prisma/client');
+const {
+    adminFilterableFields,
+    adminSearchAbleFields
+} = require('../../constants/admin.constant.js');
 
 const getAdmins = catchAsync(async (req, res) => {
     const filters = pick(req.query, adminFilterableFields);
