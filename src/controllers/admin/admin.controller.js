@@ -7,7 +7,7 @@ const {
     adminFilterableFields,
     adminSearchAbleFields
 } = require('../../constants/admin.constant.js');
-const calculatePagination = require('../../helpers/calculatePagination.js');
+const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
 
 const getAdmins = catchAsync(async (req, res) => {
     const filters = pick(req.query, adminFilterableFields);
@@ -18,40 +18,17 @@ const getAdmins = catchAsync(async (req, res) => {
         'sortOrder'
     ]);
 
-    const { page, limit, skip } = calculatePagination(options);
+    // Extra conditions, e.g., to exclude deleted records
+    const extraConditions = [{ isDeleted: false }];
 
-    const { search, ...filterData } = filters;
-
-    const andConditions = [];
-
-    if (search) {
-        andConditions.push({
-            OR: adminSearchAbleFields.map(field => ({
-                [field]: {
-                    contains: search,
-                    mode: 'insensitive'
-                }
-            }))
-        });
-    }
-
-    if (Object.keys(filterData).length > 0) {
-        andConditions.push({
-            AND: Object.keys(filterData).map(key => ({
-                [key]: {
-                    equals: filterData[key]
-                }
-            }))
-        });
-    }
-
-    andConditions.push({
-        isDeleted: false
-    });
-
-    const whereConditions = {
-        AND: andConditions
-    };
+    // Use the utility function to get query conditions
+    const { whereConditions, page, limit, skip } =
+        buildQueryConditions(
+            filters,
+            options,
+            adminSearchAbleFields,
+            extraConditions
+        );
 
     const result = await prisma.admin.findMany({
         where: whereConditions,
@@ -60,7 +37,7 @@ const getAdmins = catchAsync(async (req, res) => {
         orderBy:
             options.sortBy && options.sortOrder
                 ? {
-                      [options.sortBy.toString()]: options.sortOrder
+                      [options.sortBy]: options.sortOrder
                   }
                 : {
                       createdAt: 'desc'
