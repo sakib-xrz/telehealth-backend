@@ -15,6 +15,4 @@ const calculatePagination = options => {
     };
 };
 
-module.exports = {
-    calculatePagination
-};
+module.exports = calculatePagination;

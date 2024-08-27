@@ -6,10 +6,8 @@ const pick = require('../../shared/pick.js');
 const {
     adminFilterableFields,
     adminSearchAbleFields
-} = require('../../constants/admin.constant');
-const {
-    paginationHelper
-} = require('../../helpers/paginationHelper');
+} = require('../../constants/admin.constant.js');
+const calculatePagination = require('../../helpers/calculatePagination.js');
 
 const getAdmins = catchAsync(async (req, res) => {
     const filters = pick(req.query, adminFilterableFields);
@@ -20,8 +18,7 @@ const getAdmins = catchAsync(async (req, res) => {
         'sortOrder'
     ]);
 
-    const { page, limit, skip } =
-        paginationHelper.calculatePagination(options);
+    const { page, limit, skip } = calculatePagination(options);
 
     const { search, ...filterData } = filters;
 
