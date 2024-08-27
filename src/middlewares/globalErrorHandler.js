@@ -2,10 +2,11 @@ const { Prisma } = require('@prisma/client');
 const httpStatus = require('http-status');
 
 const globalErrorHandler = (err, _req, res, _next) => {
-    let statusCode = httpStatus.INTERNAL_SERVER_ERROR;
+    let statusCode =
+        err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
     let success = false;
-    let message = 'An unexpected error occurred.';
-    let errorDetails = err;
+    let message = err.message || 'Something went wrong!';
+    let error = err;
 
     // Prisma specific error handling for developers (hidden from frontend users)
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -13,55 +14,36 @@ const globalErrorHandler = (err, _req, res, _next) => {
             case 'P2002': // Unique constraint failed
                 statusCode = httpStatus.CONFLICT;
                 message = `It looks like the "${getUniqueField(err.meta?.target)}" you provided is already in use.`;
-                errorDetails = err.meta || {}; // Log technical details for debugging
+                error = err.meta || {}; // Log technical details for debugging
                 break;
             case 'P2025': // Record not found
                 statusCode = httpStatus.NOT_FOUND;
                 message =
                     'The item you are trying to access no longer exists or could not be found.';
-                errorDetails = err.meta || err;
+                error = err.meta || err;
                 break;
             default:
                 message =
                     'An error occurred while processing your request.';
-                errorDetails = err.meta || err;
+                error = err.meta || err;
                 break;
         }
     } else if (err instanceof Prisma.PrismaClientValidationError) {
         statusCode = httpStatus.BAD_REQUEST;
         message =
             'There seems to be an issue with the data you provided.';
-        errorDetails = err.message;
-    } else if (
-        err instanceof Prisma.PrismaClientInitializationError
-    ) {
-        statusCode = httpStatus.INTERNAL_SERVER_ERROR;
-        message = 'The service is currently unavailable.';
-        errorDetails = err.message;
-    } else if (err instanceof Prisma.PrismaClientRustPanicError) {
-        statusCode = httpStatus.INTERNAL_SERVER_ERROR;
-        message = 'An unexpected system error occurred.';
-        errorDetails = err.message;
-    } else if (
-        err instanceof Prisma.PrismaClientUnknownRequestError
-    ) {
-        statusCode = httpStatus.INTERNAL_SERVER_ERROR;
-        message =
-            'An unknown error occurred while processing your request.';
-        errorDetails = err.message;
+        error = err.message;
     }
 
     // Log technical details for developers
-    console.error('Detailed Error:', errorDetails);
+    console.error('Detailed Error:', error);
 
     // Send user-friendly error to frontend
     res.status(statusCode).json({
         success,
         message,
         error:
-            process.env.NODE_ENV === 'production'
-                ? undefined
-                : errorDetails, // Hide error details in production
+            process.env.NODE_ENV === 'production' ? undefined : error, // Hide error details in production
         stack:
             process.env.NODE_ENV === 'development'
                 ? err.stack

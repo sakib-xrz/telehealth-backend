@@ -5,4 +5,9 @@ const router = Router();
 
 router.route('/').get(AdminController.getAdmins);
 
+router
+    .route('/:id')
+    .get(AdminController.getAdmin)
+    .patch(AdminController.updateAdmin);
+
 module.exports = router;

@@ -8,6 +8,7 @@ const {
     adminSearchAbleFields
 } = require('../../constants/admin.constant.js');
 const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
+const ApiError = require('../../error/ApiError.js');
 
 const getAdmins = catchAsync(async (req, res) => {
     const filters = pick(req.query, adminFilterableFields);
@@ -61,8 +62,60 @@ const getAdmins = catchAsync(async (req, res) => {
     });
 });
 
+const getAdmin = catchAsync(async (req, res) => {
+    const adminId = req.params.id;
+
+    const result = await prisma.admin.findUnique({
+        where: {
+            id: adminId
+        }
+    });
+
+    if (!result) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found');
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Admin data retrieved successfully',
+        data: result
+    });
+});
+
+const updateAdmin = catchAsync(async (req, res) => {
+    const adminId = req.params.id;
+    const data = req.body;
+
+    const isAdminExists = await prisma.admin.findUnique({
+        where: {
+            id: adminId
+        }
+    });
+
+    if (!isAdminExists) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found');
+    }
+
+    const result = await prisma.admin.update({
+        where: {
+            id: adminId
+        },
+        data
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Admin data updated successfully',
+        data: result
+    });
+});
+
 const AdminController = {
-    getAdmins
+    getAdmins,
+    getAdmin,
+    updateAdmin
 };
 
 module.exports = AdminController;
