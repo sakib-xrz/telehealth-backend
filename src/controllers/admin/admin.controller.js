@@ -67,7 +67,8 @@ const getAdmin = catchAsync(async (req, res) => {
 
     const result = await prisma.admin.findUnique({
         where: {
-            id: adminId
+            id: adminId,
+            isDeleted: false
         }
     });
 
@@ -89,7 +90,8 @@ const updateAdmin = catchAsync(async (req, res) => {
 
     const isAdminExists = await prisma.admin.findUnique({
         where: {
-            id: adminId
+            id: adminId,
+            isDeleted: false
         }
     });
 
