@@ -175,7 +175,7 @@ const changePassword = catchAsync(async (req, res) => {
     });
 });
 
-const logout = catchAsync(async (req, res) => {
+const logout = catchAsync(async (_req, res) => {
     res.clearCookie('refreshToken');
 
     sendResponse(res, {
@@ -198,22 +198,6 @@ const forgotPassword = catchAsync(async (req, res) => {
     if (!user) {
         throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
     }
-
-    let model;
-
-    if (user.role === UserRole.ADMIN) {
-        model = prisma?.admin;
-    } else if (user.role === UserRole.DOCTOR) {
-        model = prisma?.doctor;
-    } else {
-        model = prisma?.patient;
-    }
-
-    const userData = prisma.model.findUnique({
-        where: {
-            email
-        }
-    });
 
     const resetPasswordToken = jwt.sign(
         {
@@ -248,10 +232,11 @@ const forgotPassword = catchAsync(async (req, res) => {
                                 .email-container {
                                     max-width: 600px;
                                     margin: 40px auto;
-                                    background-color: #ffffff;
+                                    background-color: #ffffff !important;
                                     border-radius: 8px;
-                                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
                                     overflow: hidden;
+                                    border: 1px solid #f2f2f2 !important;
                                 }
 
                                 .email-header {
@@ -279,7 +264,7 @@ const forgotPassword = catchAsync(async (req, res) => {
                                     margin: 20px auto;
                                     padding: 12px 0;
                                     background-color: #4a90e2;
-                                    color: #ffffff;
+                                    color: #ffffff !important;
                                     text-align: center;
                                     text-decoration: none;
                                     border-radius: 33px;
@@ -316,7 +301,7 @@ const forgotPassword = catchAsync(async (req, res) => {
                                     Password Reset
                                 </div>
                                 <div class="email-body">
-                                    <p>Hi ${userData?.name},</p>
+                                    <p>Hi,</p>
                                     <p>We received a request to reset your password. Click the button below to reset it:</p>
                                     <a href=${resetPassLink} class="reset-button">Reset Password</a>
                                     <p>If you didn’t request a password reset, you can ignore this email. Your password won’t change until you access the link above and create a new one.</p>

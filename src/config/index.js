@@ -18,7 +18,7 @@ module.exports = {
         reset_password_expires_in:
             process.env.JWT_RESET_PASSWORD_EXPIRES_IN
     },
-    reset_password_url: process.env.RESET_PASSWORD_URL,
+    reset_pass_link: process.env.RESET_PASS_LINK,
     cloudinary: {
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
