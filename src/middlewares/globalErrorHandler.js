@@ -1,5 +1,7 @@
 const { Prisma } = require('@prisma/client');
 const httpStatus = require('http-status');
+const handleZodError = require('../error/handleZodError'); // Adjust the path accordingly
+const { ZodError } = require('zod');
 
 const globalErrorHandler = (err, _req, res, _next) => {
     let statusCode =
@@ -33,6 +35,12 @@ const globalErrorHandler = (err, _req, res, _next) => {
         message =
             'There seems to be an issue with the data you provided.';
         error = err.message;
+    } else if (err instanceof ZodError) {
+        // Zod error handling
+        const zodErrorResponse = handleZodError(err);
+        statusCode = zodErrorResponse.statusCode;
+        message = zodErrorResponse.message;
+        error = zodErrorResponse.errorMessages;
     }
 
     // Log technical details for developers
