@@ -20,6 +20,11 @@ enum UserStatus {
   DELETED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 model User {
   id                 String     @id @default(uuid())
   email              String     @unique
@@ -29,7 +34,8 @@ model User {
   status             UserStatus @default(ACTIVE)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
-  Admin              Admin?
+  admin              Admin?
+  doctor             Doctor?
 
   @@map("users")
 }
@@ -47,4 +53,28 @@ model Admin {
   user User @relation(fields: [email], references: [email], onDelete: Cascade)
 
   @@map("admins")
+}
+
+model Doctor {
+  id                  String   @id @default(uuid())
+  name                String
+  email               String   @unique
+  profilePhoto        String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
+  contactNumber       String
+  address             String?
+  registrationNumber  String
+  experience          Int      @default(0)
+  gender              Gender
+  appointmentFee      Int      @default(0)
+  qualification       String
+  currentWorkingPlace String?
+  designaton          String?
+  isDeleted           Boolean  @default(false)
+  averageRating       Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  @@map("doctors")
 }
