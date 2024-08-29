@@ -102,8 +102,8 @@ const updateSchema = z.object({
 });
 
 const DoctorValidation = {
-    updateSchema,
-    createSchema
+    createSchema,
+    updateSchema
 };
 
 module.exports = DoctorValidation;
