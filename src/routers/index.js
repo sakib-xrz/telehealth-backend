@@ -3,6 +3,7 @@ const { Router } = require('express');
 const userRoutes = require('../apis/user/index.js');
 const adminRoutes = require('../apis/admin/index.js');
 const authRoutes = require('../apis/auth/index.js');
+const doctorsRoutes = require('../apis/doctor/index.js');
 
 const router = Router();
 
@@ -12,12 +13,16 @@ const routes = [
         route: userRoutes
     },
     {
+        path: '/auth',
+        route: authRoutes
+    },
+    {
         path: '/admins',
         route: adminRoutes
     },
     {
-        path: '/auth',
-        route: authRoutes
+        path: '/doctors',
+        route: doctorsRoutes
     }
 ];
 

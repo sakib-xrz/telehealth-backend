@@ -36,6 +36,7 @@ model User {
   updatedAt          DateTime   @updatedAt
   admin              Admin?
   doctor             Doctor?
+  patient            Patient?
 
   @@map("users")
 }
@@ -61,14 +62,14 @@ model Doctor {
   email               String   @unique
   profilePhoto        String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
   contactNumber       String
-  address             String?
+  address             String?  @default("")
   registrationNumber  String
-  experience          Int      @default(0)
+  experience          Int?     @default(0)
   gender              Gender
   appointmentFee      Int      @default(0)
   qualification       String
-  currentWorkingPlace String?
-  designaton          String?
+  currentWorkingPlace String?  @default("")
+  designation         String?  @default("")
   isDeleted           Boolean  @default(false)
   averageRating       Float    @default(0)
   createdAt           DateTime @default(now())
@@ -77,4 +78,20 @@ model Doctor {
   user User @relation(fields: [email], references: [email], onDelete: Cascade)
 
   @@map("doctors")
+}
+
+model Patient {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
+  contactNumber String
+  address       String?  @default("")
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  @@map("patients")
 }
