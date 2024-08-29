@@ -376,8 +376,8 @@ const resetPassword = catchAsync(async (req, res) => {
 const AuthController = {
     login,
     refreshToken,
-    changePassword,
     logout,
+    changePassword,
     forgotPassword,
     resetPassword
 };
