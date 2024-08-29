@@ -3,22 +3,39 @@ const AdminController = require('../../controllers/admin/admin.controller.js');
 
 const AdminValidation = require('../../schemas/admin/index.js');
 const validateRequest = require('../../middlewares/validateRequest.js');
+const authGuard = require('../../middlewares/authGuard.js');
+const { UserRole } = require('@prisma/client');
 
 const router = Router();
 
-router.route('/').get(AdminController.getAdmins);
+router
+    .route('/')
+    .get(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        AdminController.getAdmins
+    );
 
 router
     .route('/:id')
-    .get(AdminController.getAdmin)
+    .get(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        AdminController.getAdmin
+    )
     .patch(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
         validateRequest(AdminValidation.updateSchema),
         AdminController.updateAdmin
     )
-    .delete(AdminController.deleteAdmin);
+    .delete(
+        authGuard(UserRole.SUPER_ADMIN),
+        AdminController.deleteAdmin
+    );
 
 router
     .route('/soft-delete/:id')
-    .delete(AdminController.softDeleteAdmin);
+    .delete(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        AdminController.softDeleteAdmin
+    );
 
 module.exports = router;

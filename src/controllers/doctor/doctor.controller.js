@@ -65,9 +65,11 @@ const getDoctors = catchAsync(async (req, res) => {
 });
 
 const getDoctor = catchAsync(async (req, res) => {
+    const doctorId = req.params.id;
+
     const doctor = await prisma.doctor.findUnique({
         where: {
-            id: parseInt(req.params.id),
+            id: doctorId,
             isDeleted: false
         }
     });
