@@ -69,6 +69,72 @@ const getAllUsers = catchAsync(async (req, res) => {
     });
 });
 
+const getMyProfile = catchAsync(async (req, res) => {
+    const user = req.user;
+
+    const userInfo = await prisma.user.findUnique({
+        where: {
+            id: user.id,
+            email: user.email,
+            status: UserRole.ACTIVE
+        }
+    });
+
+    if (!userInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    }
+
+    let profileInfo;
+
+    switch (userInfo.role) {
+        case UserRole.SUPER_ADMIN:
+            profileInfo = await prisma.admin.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.ADMIN:
+            profileInfo = await prisma.admin.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.DOCTOR:
+            profileInfo = await prisma.doctor.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.PATIENT:
+            profileInfo = await prisma.patient.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+
+        default:
+            break;
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Profile data retrieved successfully',
+        data: {
+            id: userInfo.id,
+            email: userInfo.email,
+            role: userInfo.role,
+            needPasswordChange: userInfo.needPasswordChange,
+            status: userInfo.status,
+            ...profileInfo
+        }
+    });
+});
+
 const createAdmin = catchAsync(async (req, res) => {
     const { name, email, password, contactNumber } = req.body;
 
@@ -330,6 +396,7 @@ const createPatient = catchAsync(async (req, res) => {
 
 const UserController = {
     getAllUsers,
+    getMyProfile,
     createAdmin,
     createDoctor,
     createPatient

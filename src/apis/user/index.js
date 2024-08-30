@@ -17,6 +17,18 @@ router
     );
 
 router
+    .route('/me')
+    .get(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR,
+            UserRole.PATIENT
+        ),
+        UserController.getMyProfile
+    );
+
+router
     .route('/create-admin')
     .post(
         authGuard(UserRole.SUPER_ADMIN),
