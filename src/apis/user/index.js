@@ -10,6 +10,13 @@ const PatientValidation = require('../../schemas/patient/index.js');
 const router = Router();
 
 router
+    .route('/')
+    .get(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        UserController.getAllUsers
+    );
+
+router
     .route('/create-admin')
     .post(
         authGuard(UserRole.SUPER_ADMIN),

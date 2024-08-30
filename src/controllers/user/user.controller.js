@@ -6,6 +6,68 @@ const { UserRole } = require('@prisma/client');
 const handelFile = require('../../helpers/handelFile.js');
 const config = require('../../config/index.js');
 const prisma = require('../../shared/prisma.js');
+const {
+    userFilterableFields,
+    userSearchAbleFields
+} = require('../../constants/user.constant.js');
+const pick = require('../../shared/pick.js');
+const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
+
+const getAllUsers = catchAsync(async (req, res) => {
+    const filters = pick(req.query, userFilterableFields);
+    const options = pick(req.query, [
+        'limit',
+        'page',
+        'sortBy',
+        'sortOrder'
+    ]);
+
+    // Use the utility function to get query conditions
+    const { whereConditions, page, limit, skip } =
+        buildQueryConditions(filters, options, userSearchAbleFields);
+
+    const result = await prisma.user.findMany({
+        where: whereConditions,
+        skip,
+        take: limit,
+        orderBy:
+            options.sortBy && options.sortOrder
+                ? {
+                      [options.sortBy]: options.sortOrder
+                  }
+                : {
+                      createdAt: 'desc'
+                  },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            needPasswordChange: true,
+            status: true,
+            admin: true,
+            patient: true,
+            doctor: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    });
+
+    const total = await prisma.user.count({
+        where: whereConditions
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Users data retrieved successfully',
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    });
+});
 
 const createAdmin = catchAsync(async (req, res) => {
     const { name, email, password, contactNumber } = req.body;
@@ -267,6 +329,7 @@ const createPatient = catchAsync(async (req, res) => {
 });
 
 const UserController = {
+    getAllUsers,
     createAdmin,
     createDoctor,
     createPatient
