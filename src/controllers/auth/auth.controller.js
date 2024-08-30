@@ -199,6 +199,42 @@ const forgotPassword = catchAsync(async (req, res) => {
         throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
     }
 
+    let userProfile;
+
+    switch (user.role) {
+        case UserRole.SUPER_ADMIN:
+            userProfile = await prisma.admin.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.ADMIN:
+            userProfile = await prisma.admin.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.DOCTOR:
+            userProfile = await prisma.doctor.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+        case UserRole.PATIENT:
+            userProfile = await prisma.patient.findUnique({
+                where: {
+                    email: user.email
+                }
+            });
+            break;
+
+        default:
+            break;
+    }
+
     const resetPasswordToken = jwt.sign(
         {
             email: user.email,
@@ -301,14 +337,14 @@ const forgotPassword = catchAsync(async (req, res) => {
                                     Password Reset
                                 </div>
                                 <div class="email-body">
-                                    <p>Hi,</p>
+                                    <p>Hello ${userProfile.name},</p>
                                     <p>We received a request to reset your password. Click the button below to reset it:</p>
                                     <a href=${resetPassLink} class="reset-button">Reset Password</a>
                                     <p>If you didn’t request a password reset, you can ignore this email. Your password won’t change until you access the link above and create a new one.</p>
                                     <p>Thank you!</p>
                                 </div>
                                 <div class="email-footer">
-                                    <p>If you have any questions, feel free to <a href="mailto:sakibxrz21@example.com">contact our support team</a>.</p>
+                                    <p>If you have any questions, feel free to <a href="mailto:sakibul.islam0808@gmail.com">contact our support team</a>.</p>
                                 </div>
                             </div>
                         </body>
