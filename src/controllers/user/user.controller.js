@@ -12,6 +12,7 @@ const {
 } = require('../../constants/user.constant.js');
 const pick = require('../../shared/pick.js');
 const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
+const ApiError = require('../../error/ApiError.js');
 
 const getAllUsers = catchAsync(async (req, res) => {
     const filters = pick(req.query, userFilterableFields);
@@ -394,12 +395,61 @@ const createPatient = catchAsync(async (req, res) => {
     });
 });
 
+const changeUserStatus = catchAsync(async (req, res) => {
+    const requestedUser = req.user;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const user = await prisma.user.findUnique({
+        where: {
+            id
+        }
+    });
+
+    if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    }
+
+    if (requestedUser.id === id) {
+        throw new ApiError(
+            httpStatus.UNAUTHORIZED,
+            'You are not allowed to change your own status'
+        );
+    }
+
+    if (requestedUser.role === UserRole.ADMIN) {
+        if (user.role === UserRole.ADMIN) {
+            throw new ApiError(
+                httpStatus.UNAUTHORIZED,
+                'Admins are not allowed to change their own status'
+            );
+        }
+    }
+
+    const updatedUser = await prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            status
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'User status updated successfully',
+        data: updatedUser
+    });
+});
+
 const UserController = {
     getAllUsers,
     getMyProfile,
     createAdmin,
     createDoctor,
-    createPatient
+    createPatient,
+    changeUserStatus
 };
 
 module.exports = UserController;

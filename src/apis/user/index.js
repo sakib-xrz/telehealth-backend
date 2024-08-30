@@ -6,6 +6,8 @@ const DoctorValidation = require('../../schemas/doctor/index.js');
 const authGuard = require('../../middlewares/authGuard.js');
 const { UserRole } = require('@prisma/client');
 const PatientValidation = require('../../schemas/patient/index.js');
+const validateRequest = require('../../middlewares/validateRequest.js');
+const UserValidation = require('../../schemas/user/index.js');
 
 const router = Router();
 
@@ -62,5 +64,13 @@ router
         );
         return UserController.createPatient(req, res, next);
     });
+
+router
+    .route('/:id/status')
+    .patch(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        validateRequest(UserValidation.updateStatusSchema),
+        UserController.changeUserStatus
+    );
 
 module.exports = router;
