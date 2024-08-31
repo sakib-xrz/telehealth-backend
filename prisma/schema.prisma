@@ -75,7 +75,8 @@ model Doctor {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  user User @relation(fields: [email], references: [email], onDelete: Cascade)
+  user            User              @relation(fields: [email], references: [email], onDelete: Cascade)
+  doctorSpecialty DoctorSpecialty[]
 
   @@map("doctors")
 }
@@ -94,4 +95,29 @@ model Patient {
   user User @relation(fields: [email], references: [email], onDelete: Cascade)
 
   @@map("patients")
+}
+
+model Specialties {
+  id        String   @id @default(uuid())
+  title     String
+  icon      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctorSpecialty DoctorSpecialty[]
+
+  @@map("specialties")
+}
+
+model DoctorSpecialty {
+  doctorId    String
+  specialtyId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  doctor    Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specialty Specialties @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+
+  @@id([doctorId, specialtyId])
+  @@map("doctor_specialties")
 }
