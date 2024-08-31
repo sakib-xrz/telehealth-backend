@@ -85,7 +85,7 @@ router
         upload.single('file'),
         (req, res, next) => {
             req.body = UserValidation.updateProfileSchema.parse(
-                JSON.parse(req.body.data)
+                JSON.parse(req.body?.data || '{}')
             );
             return UserController.updateProfile(req, res, next);
         }
