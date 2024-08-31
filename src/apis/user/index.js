@@ -73,4 +73,22 @@ router
         UserController.changeUserStatus
     );
 
+router
+    .route('update-profile')
+    .patch(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR,
+            UserRole.PATIENT
+        ),
+        upload.single('file'),
+        (req, res, next) => {
+            req.body = UserValidation.updateProfileSchema.parse(
+                JSON.parse(req.body.data)
+            );
+            return UserController.updateProfile(req, res, next);
+        }
+    );
+
 module.exports = router;

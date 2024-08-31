@@ -10,8 +10,53 @@ const updateStatusSchema = z.object({
     })
 });
 
+const updateProfileSchema = z.object({
+    name: z
+        .string({
+            invalid_type_error: 'Name must be a string'
+        })
+        .optional(),
+    contactNumber: z
+        .string({
+            invalid_type_error: 'Contact number must be a string'
+        })
+        .optional(),
+    address: z
+        .string({
+            invalid_type_error: 'Address must be a string'
+        })
+        .optional(),
+    experience: z
+        .number({
+            invalid_type_error: 'Experience must be a number'
+        })
+        .optional(),
+    appointmentFee: z
+        .number({
+            invalid_type_error: 'Appointment Fee must be a number'
+        })
+        .optional(),
+    qualification: z
+        .string({
+            invalid_type_error: 'Qualification must be a string'
+        })
+        .optional(),
+    currentWorkingPlace: z
+        .string({
+            invalid_type_error:
+                'Current Working Place must be a string'
+        })
+        .optional(),
+    designation: z
+        .string({
+            invalid_type_error: 'Designation must be a string'
+        })
+        .optional()
+});
+
 const UserValidation = {
-    updateStatusSchema
+    updateStatusSchema,
+    updateProfileSchema
 };
 
 module.exports = UserValidation;

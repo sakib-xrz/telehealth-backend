@@ -443,13 +443,97 @@ const changeUserStatus = catchAsync(async (req, res) => {
     });
 });
 
+const updateProfile = catchAsync(async (req, res) => {
+    const user = req.user;
+
+    const file = req.file;
+
+    const userInfo = await prisma.user.findUnique({
+        where: {
+            id: user.id,
+            email: user.email,
+            status: UserRole.ACTIVE
+        }
+    });
+
+    if (!userInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    }
+
+    if (file) {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        const fileType = file.mimetype.split('/').pop();
+
+        const cloudinaryResponse =
+            await handelFile.uploadToCloudinary(file, {
+                folder: `user/${userInfo.role.toLowerCase()}`,
+                filename_override: fileName,
+                format: fileType,
+                public_id: userInfo.id,
+                overwrite: true,
+                invalidate: true
+            });
+
+        req.body.profilePhoto = cloudinaryResponse?.secure_url;
+    }
+
+    let updatedProfile;
+
+    switch (userInfo.role) {
+        case UserRole.SUPER_ADMIN:
+            updatedProfile = await prisma.admin.update({
+                where: {
+                    email: user.email
+                },
+                data: req.body
+            });
+            break;
+        case UserRole.ADMIN:
+            updatedProfile = await prisma.admin.update({
+                where: {
+                    email: user.email
+                },
+                data: req.body
+            });
+            break;
+        case UserRole.DOCTOR:
+            updatedProfile = await prisma.doctor.update({
+                where: {
+                    email: user.email
+                },
+                data: req.body
+            });
+            break;
+
+        case UserRole.PATIENT:
+            updatedProfile = await prisma.patient.update({
+                where: {
+                    email: user.email
+                },
+                data: req.body
+            });
+            break;
+
+        default:
+            break;
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Profile updated successfully',
+        data: updatedProfile
+    });
+});
+
 const UserController = {
     getAllUsers,
     getMyProfile,
     createAdmin,
     createDoctor,
     createPatient,
-    changeUserStatus
+    changeUserStatus,
+    updateProfile
 };
 
 module.exports = UserController;
