@@ -445,7 +445,6 @@ const changeUserStatus = catchAsync(async (req, res) => {
 
 const updateProfile = catchAsync(async (req, res) => {
     const user = req.user;
-
     const file = req.file;
 
     const userInfo = await prisma.user.findUnique({
@@ -477,23 +476,65 @@ const updateProfile = catchAsync(async (req, res) => {
         req.body.profilePhoto = cloudinaryResponse?.secure_url;
     }
 
+    const roleSpecificFields = {
+        [UserRole.SUPER_ADMIN]: [
+            'name',
+            'profilePhoto',
+            'contactNumber'
+        ],
+        [UserRole.ADMIN]: ['name', 'profilePhoto', 'contactNumber'],
+        [UserRole.DOCTOR]: [
+            'name',
+            'profilePhoto',
+            'contactNumber',
+            'address',
+            'registrationNumber',
+            'experience',
+            'gender',
+            'appointmentFee',
+            'qualification',
+            'currentWorkingPlace',
+            'designation'
+        ],
+        [UserRole.PATIENT]: [
+            'name',
+            'profilePhoto',
+            'contactNumber',
+            'address'
+        ]
+    };
+
+    const allowedFields = roleSpecificFields[userInfo.role];
+
+    // Check if there are any disallowed fields in the request body
+    const invalidFields = Object.keys(req.body).filter(
+        key => !allowedFields.includes(key)
+    );
+
+    if (invalidFields.length > 0) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            `Invalid fields: ${invalidFields.join(', ')} for role ${userInfo.role.toLowerCase()}`
+        );
+    }
+
+    const filteredData = Object.keys(req.body)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+            obj[key] = req.body[key];
+            return obj;
+        }, {});
+
     let updatedProfile;
 
     switch (userInfo.role) {
         case UserRole.SUPER_ADMIN:
-            updatedProfile = await prisma.admin.update({
-                where: {
-                    email: user.email
-                },
-                data: req.body
-            });
-            break;
         case UserRole.ADMIN:
             updatedProfile = await prisma.admin.update({
                 where: {
                     email: user.email
                 },
-                data: req.body
+                data: filteredData
             });
             break;
         case UserRole.DOCTOR:
@@ -501,21 +542,22 @@ const updateProfile = catchAsync(async (req, res) => {
                 where: {
                     email: user.email
                 },
-                data: req.body
+                data: filteredData
             });
             break;
-
         case UserRole.PATIENT:
             updatedProfile = await prisma.patient.update({
                 where: {
                     email: user.email
                 },
-                data: req.body
+                data: filteredData
             });
             break;
-
         default:
-            break;
+            throw new ApiError(
+                httpStatus.BAD_REQUEST,
+                'Invalid role'
+            );
     }
 
     sendResponse(res, {

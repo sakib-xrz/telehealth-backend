@@ -74,7 +74,7 @@ router
     );
 
 router
-    .route('update-profile')
+    .route('/update-profile')
     .patch(
         authGuard(
             UserRole.SUPER_ADMIN,
