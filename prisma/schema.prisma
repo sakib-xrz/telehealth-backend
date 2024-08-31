@@ -75,8 +75,8 @@ model Doctor {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  user            User              @relation(fields: [email], references: [email], onDelete: Cascade)
-  doctorSpecialty DoctorSpecialty[]
+  user              User              @relation(fields: [email], references: [email], onDelete: Cascade)
+  doctorSpecialties DoctorSpecialty[]
 
   @@map("doctors")
 }
@@ -98,26 +98,25 @@ model Patient {
 }
 
 model Specialties {
-  id        String   @id @default(uuid())
-  title     String
-  icon      String   @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1725102873/specialties/Default_xfr8sp.png")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  doctorSpecialty DoctorSpecialty[]
+  id                String            @id @default(uuid())
+  title             String
+  icon              String            @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1725102873/specialties/Default_xfr8sp.png")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  doctorSpecialties DoctorSpecialty[]
 
   @@map("specialties")
 }
 
 model DoctorSpecialty {
-  doctorId    String
-  specialtyId String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  doctorId      String
+  specialtiesId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  doctor    Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  specialty Specialties @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  doctor      Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specialties Specialties @relation(fields: [specialtiesId], references: [id], onDelete: Cascade)
 
-  @@id([doctorId, specialtyId])
+  @@id([doctorId, specialtiesId])
   @@map("doctor_specialties")
 }

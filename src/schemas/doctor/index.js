@@ -97,6 +97,20 @@ const updateSchema = z.object({
             .string({
                 invalid_type_error: 'Designation must be a string'
             })
+            .optional(),
+        specialties: z
+            .array(
+                z.object({
+                    specialtiesId: z.string({
+                        required_error: 'Specialty ID is required'
+                    }),
+                    shouldRemove: z.boolean({
+                        invalid_type_error:
+                            'Should Remove must be a boolean',
+                        required_error: 'Should Remove is required'
+                    })
+                })
+            )
             .optional()
     })
 });

@@ -140,10 +140,44 @@ const updateSpecialties = catchAsync(async (req, res) => {
     });
 });
 
+const deleteSpecialties = catchAsync(async (req, res) => {
+    const specialtiesId = req.params.id;
+
+    const specialties = await prisma.specialties.findUnique({
+        where: {
+            id: specialtiesId
+        }
+    });
+
+    if (!specialties) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Specialty not found'
+        );
+    }
+
+    await prisma.specialties.delete({
+        where: {
+            id: specialtiesId
+        }
+    });
+
+    await handelFile.deleteFromCloudinary([
+        `specialties/${specialtiesId}`
+    ]);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Specialty deleted successfully'
+    });
+});
+
 const SpecialtiesController = {
     getAllSpecialties,
     createSpecialties,
-    updateSpecialties
+    updateSpecialties,
+    deleteSpecialties
 };
 
 module.exports = SpecialtiesController;

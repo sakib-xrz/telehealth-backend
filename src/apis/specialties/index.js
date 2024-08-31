@@ -57,6 +57,14 @@ router
                 next
             );
         }
+    )
+    .delete(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR
+        ),
+        specialtiesController.deleteSpecialties
     );
 
 module.exports = router;
