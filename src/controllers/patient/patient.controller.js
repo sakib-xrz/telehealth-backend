@@ -35,6 +35,10 @@ const getPatients = catchAsync(async (req, res) => {
 
     const result = await prisma.patient.findMany({
         where: whereConditions,
+        include: {
+            patientHealthData: true,
+            medicalReport: true
+        },
         skip,
         take: limit,
         orderBy:
@@ -71,6 +75,10 @@ const getPatient = catchAsync(async (req, res) => {
         where: {
             id: patientId,
             isDeleted: false
+        },
+        include: {
+            patientHealthData: true,
+            medicalReport: true
         }
     });
 
@@ -91,7 +99,7 @@ const getPatient = catchAsync(async (req, res) => {
 
 const updatePatient = catchAsync(async (req, res) => {
     const patientId = req.params.id;
-    const data = req.body;
+    const { patientHealthData, ...patientData } = req.body;
 
     const patient = await prisma.patient.findUnique({
         where: {
@@ -107,11 +115,36 @@ const updatePatient = catchAsync(async (req, res) => {
         });
     }
 
-    const updatedPatient = await prisma.patient.update({
+    await prisma.$transaction(async transactionClient => {
+        await transactionClient.patient.update({
+            where: {
+                id: patientId
+            },
+            data: patientData
+        });
+
+        if (patientHealthData) {
+            await transactionClient.patientHealthData.upsert({
+                where: {
+                    patientId
+                },
+                create: {
+                    ...patientHealthData,
+                    patientId
+                },
+                update: patientHealthData
+            });
+        }
+    });
+
+    const updatedPatient = await prisma.patient.findUnique({
         where: {
             id: patientId
         },
-        data
+        include: {
+            patientHealthData: true,
+            medicalReport: true
+        }
     });
 
     sendResponse(res, {
