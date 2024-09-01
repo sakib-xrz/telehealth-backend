@@ -1,11 +1,13 @@
+const httpStatus = require('http-status');
 const ApiError = require('../../error/ApiError');
 const catchAsync = require('../../shared/catchAsync');
 const prisma = require('../../shared/prisma');
+const sendResponse = require('../../shared/sendResponse');
 
 const createReport = catchAsync(async (req, res) => {
     const { user, body } = req;
 
-    const patientInfo = await prisma.patient.findUnique({
+    const patientInfo = await prisma.user.findUnique({
         where: {
             id: user.id
         },
@@ -24,7 +26,7 @@ const createReport = catchAsync(async (req, res) => {
     const report = await prisma.medicalReport.create({
         data: {
             ...body,
-            patientId: user.patient.id
+            patientId: patientInfo.patient.id
         }
     });
 
@@ -39,7 +41,7 @@ const createReport = catchAsync(async (req, res) => {
 const getAllReports = catchAsync(async (req, res) => {
     const { user } = req;
 
-    const patientInfo = await prisma.patient.findUnique({
+    const patientInfo = await prisma.user.findUnique({
         where: {
             id: user.id
         },
@@ -57,7 +59,7 @@ const getAllReports = catchAsync(async (req, res) => {
 
     const reports = await prisma.medicalReport.findMany({
         where: {
-            patientId: user.patient.id
+            patientId: patientInfo.patient.id
         }
     });
 
@@ -91,7 +93,7 @@ const updateReport = catchAsync(async (req, res) => {
     const report = await prisma.medicalReport.findUnique({
         where: {
             id: params.id,
-            patientId: user.patient.id
+            patientId: patientInfo.patient.id
         }
     });
 
@@ -141,7 +143,7 @@ const deleteReport = catchAsync(async (req, res) => {
     const report = await prisma.medicalReport.findUnique({
         where: {
             id: params.id,
-            patientId: user.patient.id
+            patientId: patientInfo.patient.id
         }
     });
 
