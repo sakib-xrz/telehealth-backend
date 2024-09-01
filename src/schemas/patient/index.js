@@ -1,3 +1,4 @@
+const { Gender, MaritalStatus } = require('@prisma/client');
 const { z } = require('zod');
 
 const createSchema = z.object({
@@ -31,7 +32,27 @@ const updateSchema = z.object({
             })
             .optional(),
         contactNumber: z.string().optional(),
-        address: z.string().optional()
+        address: z.string().optional(),
+        patientHealthData: z
+            .object({
+                gender: Gender.optional(),
+                dateOfBirth: z.string().optional(),
+                bloodGroup: z.string().optional(),
+                hasAllergies: z.boolean().optional(),
+                hasDiabetes: z.boolean().optional(),
+                height: z.string().optional(),
+                weight: z.string().optional(),
+                smokingStatus: z.boolean().optional(),
+                dietaryPreferences: z.string().optional(),
+                pregnancyStatus: z.boolean().optional(),
+                mentalHealthHistory: z.string().optional(),
+                immunizationStatus: z.string().optional(),
+                hasPastSurgeries: z.boolean().optional(),
+                recentAnxiety: z.boolean().optional(),
+                recentDepression: z.boolean().optional(),
+                maritalStatus: MaritalStatus.optional()
+            })
+            .optional()
     })
 });
 
