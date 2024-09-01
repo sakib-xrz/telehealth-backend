@@ -6,6 +6,7 @@ const authRoutes = require('../apis/auth/index.js');
 const doctorsRoutes = require('../apis/doctor/index.js');
 const patientsRoutes = require('../apis/patient/index.js');
 const specialtiesRoutes = require('../apis/specialties/index.js');
+const reportRoutes = require('../apis/report/index.js');
 
 const router = Router();
 
@@ -33,6 +34,10 @@ const routes = [
     {
         path: '/specialties',
         route: specialtiesRoutes
+    },
+    {
+        path: '/reports',
+        route: reportRoutes
     }
 ];
 
