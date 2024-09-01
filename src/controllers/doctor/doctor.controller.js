@@ -3,7 +3,6 @@ const sendResponse = require('../../shared/sendResponse.js');
 const httpStatus = require('http-status');
 const prisma = require('../../shared/prisma.js');
 const pick = require('../../shared/pick.js');
-const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
 const ApiError = require('../../error/ApiError.js');
 const handelFile = require('../../helpers/handelFile.js');
 const { UserStatus } = require('@prisma/client');
@@ -11,6 +10,7 @@ const {
     doctorFilterableFields,
     doctorSearchAbleFields
 } = require('../../constants/doctor.constant.js');
+const calculatePagination = require('../../helpers/calculatePagination.js');
 
 const getDoctors = catchAsync(async (req, res) => {
     const filters = pick(req.query, doctorFilterableFields);
@@ -21,20 +21,64 @@ const getDoctors = catchAsync(async (req, res) => {
         'sortOrder'
     ]);
 
-    // Extra conditions, e.g., to exclude deleted records
-    const extraConditions = [{ isDeleted: false }];
+    const { limit, page, skip } = calculatePagination(options);
 
-    // Use the utility function to get query conditions
-    const { whereConditions, page, limit, skip } =
-        buildQueryConditions(
-            filters,
-            options,
-            doctorSearchAbleFields,
-            extraConditions
-        );
+    const { search, specialties, ...filterData } = filters;
+
+    const andConditions = [];
+
+    if (search) {
+        andConditions.push({
+            OR: doctorSearchAbleFields.map(field => ({
+                [field]: {
+                    contains: search,
+                    mode: 'insensitive'
+                }
+            }))
+        });
+    }
+
+    if (specialties) {
+        andConditions.push({
+            doctorSpecialties: {
+                some: {
+                    specialties: {
+                        title: {
+                            contains: specialties,
+                            mode: 'insensitive'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => ({
+                [key]: {
+                    equals: filterData[key]
+                }
+            }))
+        });
+    }
+
+    andConditions.push({
+        isDeleted: false
+    });
+
+    const whereConditions =
+        andConditions.length > 0 ? { AND: andConditions } : {};
 
     const result = await prisma.doctor.findMany({
         where: whereConditions,
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialties: true
+                }
+            }
+        },
         skip,
         take: limit,
         orderBy:
@@ -71,6 +115,13 @@ const getDoctor = catchAsync(async (req, res) => {
         where: {
             id: doctorId,
             isDeleted: false
+        },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialties: true
+                }
+            }
         }
     });
 

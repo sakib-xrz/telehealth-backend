@@ -2,7 +2,8 @@ const doctorFilterableFields = [
     'name',
     'email',
     'search',
-    'contactNumber'
+    'contactNumber',
+    'specialties'
 ];
 
 const doctorSearchAbleFields = ['name', 'email', 'contactNumber'];
