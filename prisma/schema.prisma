@@ -25,6 +25,22 @@ enum Gender {
   FEMALE
 }
 
+enum BloodGroup {
+  A_POSITIVE
+  B_POSITIVE
+  O_POSITIVE
+  AB_POSITIVE
+  A_NEGATIVE
+  B_NEGATIVE
+  O_NEGATIVE
+  AB_NEGATIVE
+}
+
+enum MaritalStatus {
+  MARRIED
+  UNMARRIED
+}
+
 model User {
   id                 String     @id @default(uuid())
   email              String     @unique
@@ -92,7 +108,9 @@ model Patient {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user User @relation(fields: [email], references: [email], onDelete: Cascade)
+  user              User               @relation(fields: [email], references: [email], onDelete: Cascade)
+  patientHealthData PatientHealthData?
+  medicalReport     MedicalReport[]
 
   @@map("patients")
 }
@@ -119,4 +137,44 @@ model DoctorSpecialty {
 
   @@id([doctorId, specialtiesId])
   @@map("doctor_specialties")
+}
+
+model PatientHealthData {
+  id                  String        @id @default(uuid())
+  patientId           String        @unique
+  gender              Gender
+  dateOfBirth         String
+  bloodGroup          BloodGroup
+  hasAllergies        Boolean?      @default(false)
+  hasDiabetes         Boolean?      @default(false)
+  height              String
+  weight              String
+  smokingStatus       Boolean?      @default(false)
+  dietaryPreferences  String?
+  pregnancyStatus     Boolean?      @default(false)
+  mentalHealthHistory String?
+  immunizationStatus  String?
+  hasPastSurgeries    Boolean?      @default(false)
+  recentAnxiety       Boolean?      @default(false)
+  recentDepression    Boolean?      @default(false)
+  maritalStatus       MaritalStatus @default(UNMARRIED)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@map("patient_health_datas")
+}
+
+model MedicalReport {
+  id         String   @id @default(uuid())
+  patientId  String
+  reportName String
+  reportLink String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@map("madical_reports")
 }
