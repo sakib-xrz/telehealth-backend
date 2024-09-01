@@ -35,7 +35,9 @@ const updateSchema = z.object({
         address: z.string().optional(),
         patientHealthData: z
             .object({
-                gender: Gender.optional(),
+                gender: z
+                    .enum([Gender.MALE, Gender.FEMALE])
+                    .optional(),
                 dateOfBirth: z.string().optional(),
                 bloodGroup: z.string().optional(),
                 hasAllergies: z.boolean().optional(),
@@ -50,7 +52,12 @@ const updateSchema = z.object({
                 hasPastSurgeries: z.boolean().optional(),
                 recentAnxiety: z.boolean().optional(),
                 recentDepression: z.boolean().optional(),
-                maritalStatus: MaritalStatus.optional()
+                maritalStatus: z
+                    .enum([
+                        MaritalStatus.MARRIED,
+                        MaritalStatus.UNMARRIED
+                    ])
+                    .optional()
             })
             .optional()
     })
