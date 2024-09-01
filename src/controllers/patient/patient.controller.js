@@ -176,13 +176,25 @@ const deletePatient = catchAsync(async (req, res) => {
     }
 
     await prisma.$transaction(async transactionClient => {
+        await transactionClient.patientHealthData.delete({
+            where: {
+                patientId
+            }
+        });
+
+        await transactionClient.medicalReport.deleteMany({
+            where: {
+                patientId
+            }
+        });
+
         await transactionClient.patient.delete({
             where: {
                 id: patientId
             }
         });
 
-        await transactionClient.user.update({
+        await transactionClient.user.delete({
             where: {
                 id: patient.user.id
             }
