@@ -93,6 +93,7 @@ model Doctor {
 
   user              User              @relation(fields: [email], references: [email], onDelete: Cascade)
   doctorSpecialties DoctorSpecialty[]
+  doctorSchedules   DoctorSchedules[]
 
   @@map("doctors")
 }
@@ -177,4 +178,28 @@ model MedicalReport {
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@map("medical_reports")
+}
+
+model Schedule {
+  id              String            @id @default(uuid())
+  startDateTime   DateTime
+  endDateTime     DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  doctorSchedules DoctorSchedules[]
+
+  @@map("schedules")
+}
+
+model DoctorSchedules {
+  doctorId      String
+  scheduleId    String
+  isBooked      Boolean? @default(false)
+  appointmentId String?
+
+  doctor   Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@id([doctorId, scheduleId])
+  @@map("doctor_schedules")
 }
