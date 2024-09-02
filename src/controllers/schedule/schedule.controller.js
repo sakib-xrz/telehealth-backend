@@ -2,6 +2,11 @@ const httpStatus = require('http-status');
 const catchAsync = require('../../shared/catchAsync');
 const sendResponse = require('../../shared/sendResponse');
 const prisma = require('../../shared/prisma');
+const {
+    scheduleFilterableFields
+} = require('../../constants/schedule.constant');
+const calculatePagination = require('../../helpers/calculatePagination');
+const pick = require('../../shared/pick');
 
 const createSchedule = catchAsync(async (req, res) => {
     const { startDate, endDate, startTime, endTime } = req.body;
@@ -56,8 +61,109 @@ const createSchedule = catchAsync(async (req, res) => {
     });
 });
 
+const getSchedules = catchAsync(async (req, res) => {
+    const user = req.user;
+
+    const doctorInfo =
+        (await prisma.doctor.findUnique({
+            where: {
+                email: user.email
+            },
+            include: {
+                doctorSchedules: true
+            }
+        })) || {};
+
+    const filters = pick(req.query, scheduleFilterableFields);
+    const options = pick(req.query, [
+        'limit',
+        'page',
+        'sortBy',
+        'sortOrder'
+    ]);
+
+    const { limit, page, skip } = calculatePagination(options);
+    const { startDate, endDate } = filters;
+
+    const andConditions = [];
+
+    if (startDate && endDate) {
+        andConditions.push({
+            AND: [
+                {
+                    startDateTime: {
+                        gte: startDate
+                    }
+                },
+                {
+                    endDateTime: {
+                        lte: endDate
+                    }
+                }
+            ]
+        });
+    }
+
+    const whereConditions =
+        andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const doctorScheduleIds =
+        doctorInfo.doctorSchedules &&
+        doctorInfo.doctorSchedules.length > 0
+            ? doctorInfo.doctorSchedules.map(
+                  schedule => schedule.scheduleId
+              )
+            : [];
+
+    const result = await prisma.schedule.findMany({
+        where: {
+            ...whereConditions,
+            id: {
+                notIn: doctorScheduleIds
+            }
+        },
+        select: {
+            id: true,
+            startDateTime: true,
+            endDateTime: true
+        },
+        skip,
+        take: limit,
+        orderBy:
+            options.sortBy && options.sortOrder
+                ? {
+                      [options.sortBy]: options.sortOrder
+                  }
+                : {
+                      createdAt: 'desc'
+                  }
+    });
+
+    const total = await prisma.schedule.count({
+        where: {
+            ...whereConditions,
+            id: {
+                notIn: doctorScheduleIds
+            }
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Schedules fetched successfully',
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    });
+});
+
 const ScheduleController = {
-    createSchedule
+    createSchedule,
+    getSchedules
 };
 
 module.exports = ScheduleController;

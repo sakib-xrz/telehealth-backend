@@ -7,6 +7,14 @@ const router = Router();
 
 router
     .route('/')
+    .get(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR
+        ),
+        ScheduleController.getSchedules
+    )
     .post(
         authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
         ScheduleController.createSchedule
