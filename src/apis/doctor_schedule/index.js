@@ -12,4 +12,11 @@ router
         DoctorScheduleController.createDoctorSchedule
     );
 
+router
+    .route('/selected')
+    .get(
+        authGuard(UserRole.DOCTOR),
+        DoctorScheduleController.getDoctorSelectedSchedule
+    );
+
 module.exports = router;
