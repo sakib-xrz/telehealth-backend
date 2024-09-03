@@ -61,6 +61,10 @@ const getDoctorSelectedSchedule = catchAsync(async (req, res) => {
         }
     });
 
+    if (!doctorInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Doctor not found');
+    }
+
     const filters = pick(req.query, doctorScheduleFilterableFields);
     const options = pick(req.query, [
         'limit',
