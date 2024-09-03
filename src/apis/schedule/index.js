@@ -20,4 +20,19 @@ router
         ScheduleController.createSchedule
     );
 
+router
+    .route('/:id')
+    .get(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR
+        ),
+        ScheduleController.getSchedule
+    )
+    .delete(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        ScheduleController.deleteSchedule
+    );
+
 module.exports = router;

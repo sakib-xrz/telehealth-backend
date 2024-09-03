@@ -7,6 +7,7 @@ const {
 } = require('../../constants/schedule.constant');
 const calculatePagination = require('../../helpers/calculatePagination');
 const pick = require('../../shared/pick');
+const ApiError = require('../../error/ApiError');
 
 const createSchedule = catchAsync(async (req, res) => {
     const { startDate, endDate, startTime, endTime } = req.body;
@@ -161,9 +162,80 @@ const getSchedules = catchAsync(async (req, res) => {
     });
 });
 
+const getSchedule = catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await prisma.schedule.findUnique({
+        where: {
+            id
+        },
+        include: {
+            doctorSchedules: true
+        }
+    });
+
+    if (!schedule) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Schedule not found'
+        );
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Schedule fetched successfully',
+        data: schedule
+    });
+});
+
+const deleteSchedule = catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await prisma.schedule.findUnique({
+        where: {
+            id
+        }
+    });
+
+    if (!schedule) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Schedule not found'
+        );
+    }
+
+    const doctorSchedule = await prisma.doctorSchedules.findFirst({
+        where: {
+            scheduleId: id
+        }
+    });
+
+    if (doctorSchedule) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            'Schedule is associated with a doctor and cannot be deleted'
+        );
+    }
+
+    await prisma.schedule.delete({
+        where: {
+            id
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Schedule deleted successfully'
+    });
+});
+
 const ScheduleController = {
     createSchedule,
-    getSchedules
+    getSchedules,
+    getSchedule,
+    deleteSchedule
 };
 
 module.exports = ScheduleController;
