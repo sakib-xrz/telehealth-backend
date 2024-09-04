@@ -1,4 +1,4 @@
-const { UserStatus } = require('@prisma/client');
+const { UserStatus, UserRole } = require('@prisma/client');
 const catchAsync = require('../../shared/catchAsync');
 const ApiError = require('../../error/ApiError');
 const httpStatus = require('http-status');
@@ -60,6 +60,8 @@ const getDoctorSelectedSchedules = catchAsync(async (req, res) => {
             doctor: true
         }
     });
+
+    console.log(doctorInfo.id);
 
     if (!doctorInfo) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Doctor not found');
@@ -163,6 +165,7 @@ const getDoctorSelectedSchedules = catchAsync(async (req, res) => {
 });
 
 const getPublicDoctorSchedules = catchAsync(async (req, res) => {
+    const user = req.user;
     const filters = pick(req.query, doctorScheduleFilterableFields);
     const options = pick(req.query, [
         'limit',
@@ -214,6 +217,12 @@ const getPublicDoctorSchedules = catchAsync(async (req, res) => {
                     }
                 };
             })
+        });
+    }
+
+    if (user.role === UserRole.PATIENT) {
+        andConditions.push({
+            isBooked: false
         });
     }
 
