@@ -16,7 +16,19 @@ router
     .route('/selected')
     .get(
         authGuard(UserRole.DOCTOR),
-        DoctorScheduleController.getDoctorSelectedSchedule
+        DoctorScheduleController.getDoctorSelectedSchedules
+    );
+
+router
+    .route('/public')
+    .get(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR,
+            UserRole.PATIENT
+        ),
+        DoctorScheduleController.getPublicDoctorSchedule
     );
 
 module.exports = router;
