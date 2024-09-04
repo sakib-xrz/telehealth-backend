@@ -269,10 +269,64 @@ const getPublicDoctorSchedule = catchAsync(async (req, res) => {
     });
 });
 
+const deleteDoctorSchedule = catchAsync(async (req, res) => {
+    const user = req.user;
+
+    const doctorInfo = await prisma.user.findUnique({
+        where: {
+            id: user.id,
+            status: UserStatus.ACTIVE
+        },
+        include: {
+            doctor: true
+        }
+    });
+
+    if (!doctorInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Doctor not found');
+    }
+
+    const { scheduleId } = req.params;
+
+    const isBookedDeletedSchedule =
+        await prisma.doctorSchedules.findFirst({
+            where: {
+                scheduleId,
+                doctorId: doctorInfo.doctor.id,
+                isBooked: true
+            }
+        });
+
+    console.log(isBookedDeletedSchedule);
+
+    if (isBookedDeletedSchedule) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            `You can't delete this schedule because it's already booked`
+        );
+    }
+
+    await prisma.doctorSchedules.delete({
+        where: {
+            doctorId_scheduleId: {
+                scheduleId,
+                doctorId: doctorInfo.doctor.id
+            }
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Doctor schedule deleted successfully'
+    });
+});
+
 const DoctorScheduleController = {
     createDoctorSchedule,
     getDoctorSelectedSchedules,
-    getPublicDoctorSchedule
+    getPublicDoctorSchedule,
+    deleteDoctorSchedule
 };
 
 module.exports = DoctorScheduleController;

@@ -31,4 +31,11 @@ router
         DoctorScheduleController.getPublicDoctorSchedule
     );
 
+router
+    .route('/:scheduleId')
+    .delete(
+        authGuard(UserRole.DOCTOR),
+        DoctorScheduleController.deleteDoctorSchedule
+    );
+
 module.exports = router;
