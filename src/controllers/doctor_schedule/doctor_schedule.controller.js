@@ -162,7 +162,7 @@ const getDoctorSelectedSchedules = catchAsync(async (req, res) => {
     });
 });
 
-const getPublicDoctorSchedule = catchAsync(async (req, res) => {
+const getPublicDoctorSchedules = catchAsync(async (req, res) => {
     const filters = pick(req.query, doctorScheduleFilterableFields);
     const options = pick(req.query, [
         'limit',
@@ -225,14 +225,12 @@ const getPublicDoctorSchedule = catchAsync(async (req, res) => {
         include: {
             schedule: {
                 select: {
-                    id: true,
                     startDateTime: true,
                     endDateTime: true
                 }
             },
             doctor: {
                 select: {
-                    id: true,
                     name: true,
                     email: true,
                     contactNumber: true,
@@ -265,6 +263,53 @@ const getPublicDoctorSchedule = catchAsync(async (req, res) => {
             page,
             total
         },
+        data: result
+    });
+});
+
+const getPublicDoctorScheduleById = catchAsync(async (req, res) => {
+    const { doctorId, scheduleId } = req.params;
+
+    const result = await prisma.doctorSchedules.findUnique({
+        where: {
+            doctorId_scheduleId: {
+                scheduleId,
+                doctorId
+            }
+        },
+        include: {
+            schedule: {
+                select: {
+                    startDateTime: true,
+                    endDateTime: true
+                }
+            },
+            doctor: {
+                select: {
+                    name: true,
+                    email: true,
+                    contactNumber: true,
+                    profilePhoto: true,
+                    gender: true,
+                    appointmentFee: true,
+                    qualification: true,
+                    averageRating: true
+                }
+            }
+        }
+    });
+
+    if (!result) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Doctor schedule not found'
+        );
+    }
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Doctor schedule fetched successfully',
         data: result
     });
 });
@@ -325,7 +370,8 @@ const deleteDoctorSchedule = catchAsync(async (req, res) => {
 const DoctorScheduleController = {
     createDoctorSchedule,
     getDoctorSelectedSchedules,
-    getPublicDoctorSchedule,
+    getPublicDoctorSchedules,
+    getPublicDoctorScheduleById,
     deleteDoctorSchedule
 };
 

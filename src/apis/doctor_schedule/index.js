@@ -28,7 +28,19 @@ router
             UserRole.DOCTOR,
             UserRole.PATIENT
         ),
-        DoctorScheduleController.getPublicDoctorSchedule
+        DoctorScheduleController.getPublicDoctorSchedules
+    );
+
+router
+    .route('/public/:doctorId/:scheduleId')
+    .get(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR,
+            UserRole.PATIENT
+        ),
+        DoctorScheduleController.getPublicDoctorScheduleById
     );
 
 router
