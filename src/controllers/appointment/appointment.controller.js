@@ -80,6 +80,16 @@ const createAppointment = catchAsync(async (req, res) => {
                 }
             });
 
+            const transactionId = `TXN-${uuidv4()}`;
+
+            await transactionClient.payment.create({
+                data: {
+                    appointmentId: appointment.id,
+                    amount: doctor.appointmentFee,
+                    transactionId
+                }
+            });
+
             return appointment;
         }
     );
