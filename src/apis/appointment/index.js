@@ -15,4 +15,18 @@ router
         AppointmentController.createAppointment
     );
 
+router
+    .route('/my-appointments')
+    .get(
+        authGuard(UserRole.PATIENT, UserRole.DOCTOR),
+        AppointmentController.getMyAppointments
+    );
+
+router
+    .route('/my-appointments/:appointmentId')
+    .get(
+        authGuard(UserRole.PATIENT, UserRole.DOCTOR),
+        AppointmentController.getAppointmentById
+    );
+
 module.exports = router;
