@@ -70,9 +70,7 @@ const initiatePayment = catchAsync(async (req, res) => {
     });
 });
 
-const ipnListener = catchAsync(async (req, res) => {
-    console.log('IPN received');
-
+const ipnListener = catchAsync(async (req, _res) => {
     const payload = req.params;
 
     if (!payload.val_id || !payload.status === 'VALID') {
@@ -122,13 +120,9 @@ const ipnListener = catchAsync(async (req, res) => {
         });
     });
 
-    console.log('Payment successful');
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'IPN received and processed successfully'
-    });
+    return {
+        message: 'Payment successful'
+    };
 });
 
 const PaymentController = {
