@@ -13,6 +13,6 @@ router
         PaymentController.initiatePayment
     );
 
-router.route('/ipn_listener').get(PaymentController.ipnListener);
+router.route('/ipn_listener').post(PaymentController.ipnListener);
 
 module.exports = router;
