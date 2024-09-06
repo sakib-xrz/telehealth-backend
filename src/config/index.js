@@ -18,7 +18,8 @@ module.exports = {
         reset_password_expires_in:
             process.env.JWT_RESET_PASSWORD_EXPIRES_IN
     },
-    reset_pass_link: process.env.RESET_PASS_LINK,
+    frontend_base_url: process.env.FRONTEND_BASE_URL,
+    reset_pass_url: process.env.RESET_PASS_URL,
     cloudinary: {
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
@@ -27,5 +28,16 @@ module.exports = {
     emailSender: {
         email: process.env.EMAIL,
         app_pass: process.env.APP_PASS
+    },
+    ssl: {
+        store_id: process.env.SSL_STORE_ID,
+        store_pass: process.env.SSL_STORE_PASS,
+        session_api_url: process.env.SSL_SESSION_API_URL,
+        validate_api_url: process.env.SSL_VALIDATE_API_URL
+    },
+    payment: {
+        success_url: process.env.PAYMENT_SUCCESS_URL,
+        fail_url: process.env.PAYMENT_FAILURE_URL,
+        cancel_url: process.env.PAYMENT_CANCEL_URL
     }
 };

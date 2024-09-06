@@ -246,9 +246,7 @@ const forgotPassword = catchAsync(async (req, res) => {
         }
     );
 
-    const resetPassLink =
-        config.reset_pass_link +
-        `?userId=${user.id}&token=${resetPasswordToken}`;
+    const resetPassLink = `${config.frontend_base_url}/${config.reset_pass_url}?userId=${user.id}&token=${resetPasswordToken}`;
 
     const mailBody = `<!DOCTYPE html>
                         <html lang="en">
