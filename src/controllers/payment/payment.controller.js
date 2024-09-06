@@ -4,6 +4,8 @@ const sendResponse = require('../../shared/sendResponse');
 const SSLCommerzPayment = require('sslcommerz-lts');
 const config = require('../../config');
 const prisma = require('../../shared/prisma');
+const { PaymentStatus } = require('@prisma/client');
+const ApiError = require('../../error/ApiError');
 
 const store_id = config.ssl.store_id;
 const store_passwd = config.ssl.store_pass;
@@ -24,11 +26,19 @@ const initiatePayment = catchAsync(async (req, res) => {
         }
     });
 
+    if (!paymentInfo) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Payment data not found'
+        );
+    }
+
     const data = {
         total_amount: paymentInfo.amount,
         currency: 'BDT',
         tran_id: paymentInfo.transactionId,
-        success_url: `${config.frontend_base_url}/${config.payment.success_url}`,
+        success_url:
+            'http://localhost:8000/api/v1/payments/ipn_listener',
         fail_url: `${config.frontend_base_url}/${config.payment.fail_url}`,
         cancel_url: `${config.frontend_base_url}/${config.payment.cancel_url}`,
         ipn_url: 'http://localhost:3030/ipn',
@@ -70,8 +80,8 @@ const initiatePayment = catchAsync(async (req, res) => {
     });
 });
 
-const ipnListener = catchAsync(async (req, _res) => {
-    const payload = req.params;
+const ipnListener = catchAsync(async (req, res) => {
+    const payload = req.body;
 
     if (!payload.val_id || !payload.status === 'VALID') {
         console.log('Invalid IPN request');
@@ -87,7 +97,7 @@ const ipnListener = catchAsync(async (req, _res) => {
         is_live
     );
 
-    const response = sslcz.validate({
+    const response = await sslcz.validate({
         val_id: payload.val_id
     });
 
@@ -102,7 +112,7 @@ const ipnListener = catchAsync(async (req, _res) => {
         const updatedPaymentData =
             await transactionClient.payment.update({
                 where: {
-                    transactionId: response.tran_id
+                    transactionId: response.tran_id // Now valid because it's unique
                 },
                 data: {
                     status: PaymentStatus.PAID,
@@ -112,7 +122,7 @@ const ipnListener = catchAsync(async (req, _res) => {
 
         await transactionClient.appointment.update({
             where: {
-                id: updatedPaymentData.appointmentId
+                id: updatedPaymentData.appointmentId // Assuming this is the relation
             },
             data: {
                 paymentStatus: PaymentStatus.PAID
@@ -120,9 +130,11 @@ const ipnListener = catchAsync(async (req, _res) => {
         });
     });
 
-    return {
-        message: 'Payment successful'
-    };
+    console.log('Payment successful');
+
+    res.redirect(
+        `${config.frontend_base_url}/${config.payment.success_url}`
+    );
 });
 
 const PaymentController = {
