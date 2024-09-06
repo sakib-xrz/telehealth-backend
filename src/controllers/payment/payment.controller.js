@@ -89,7 +89,8 @@ const ipnListener = catchAsync(async (req, res) => {
 });
 
 const PaymentController = {
-    initiatePayment
+    initiatePayment,
+    ipnListener
 };
 
 module.exports = PaymentController;
