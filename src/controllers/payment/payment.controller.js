@@ -65,9 +65,8 @@ const initiatePayment = catchAsync(async (req, res) => {
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: {
-            paymentUrl: sslResponse.GatewayPageURL
-        }
+        message: 'Payment initiated successfully',
+        data: { paymentUrl: sslResponse.GatewayPageURL }
     });
 });
 
@@ -83,6 +82,8 @@ const ipnListener = catchAsync(async (req, res) => {
     const response = sslcz.validate({
         val_id: payload.val_id
     });
+
+    console.log(response);
 
     await prisma.$transaction(async transactionClient => {
         const updatedPaymentData =
