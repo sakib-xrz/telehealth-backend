@@ -71,6 +71,8 @@ const initiatePayment = catchAsync(async (req, res) => {
 });
 
 const ipnListener = catchAsync(async (req, res) => {
+    console.log('IPN received');
+
     const payload = req.params;
 
     const sslcz = new SSLCommerzPayment(
@@ -82,8 +84,6 @@ const ipnListener = catchAsync(async (req, res) => {
     const response = sslcz.validate({
         val_id: payload.val_id
     });
-
-    console.log(response);
 
     await prisma.$transaction(async transactionClient => {
         const updatedPaymentData =
