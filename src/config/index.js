@@ -31,9 +31,7 @@ module.exports = {
     },
     ssl: {
         store_id: process.env.SSL_STORE_ID,
-        store_pass: process.env.SSL_STORE_PASS,
-        session_api_url: process.env.SSL_SESSION_API_URL,
-        validate_api_url: process.env.SSL_VALIDATE_API_URL
+        store_pass: process.env.SSL_STORE_PASS
     },
     payment: {
         success_url: process.env.PAYMENT_SUCCESS_URL,

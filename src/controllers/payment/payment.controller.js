@@ -70,10 +70,18 @@ const initiatePayment = catchAsync(async (req, res) => {
     });
 });
 
-const ipnListener = catchAsync(async (req, res) => {
+const ipnListener = catchAsync(async (req, _res) => {
     console.log('IPN received');
 
     const payload = req.params;
+
+    if (!payload.val_id || !payload.status === 'VALID') {
+        console.log('Invalid IPN request');
+
+        return {
+            message: 'Invalid IPN request'
+        };
+    }
 
     const sslcz = new SSLCommerzPayment(
         store_id,
@@ -84,6 +92,13 @@ const ipnListener = catchAsync(async (req, res) => {
     const response = sslcz.validate({
         val_id: payload.val_id
     });
+
+    if (response.status !== 'VALID') {
+        console.log('Payment validation failed');
+        return {
+            message: 'Payment validation failed'
+        };
+    }
 
     await prisma.$transaction(async transactionClient => {
         const updatedPaymentData =
@@ -106,6 +121,12 @@ const ipnListener = catchAsync(async (req, res) => {
             }
         });
     });
+
+    console.log('Payment successful');
+
+    return {
+        message: 'Payment successful'
+    };
 });
 
 const PaymentController = {
