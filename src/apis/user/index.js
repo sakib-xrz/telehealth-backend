@@ -30,18 +30,16 @@ router
         UserController.getMyProfile
     );
 
-router
-    .route('/create-admin')
-    .post(
-        authGuard(UserRole.SUPER_ADMIN),
-        upload.single('file'),
-        (req, res, next) => {
-            req.body = AdminValidation.createSchema.parse(
-                JSON.parse(req.body.data)
-            );
-            return UserController.createAdmin(req, res, next);
-        }
-    );
+router.route('/create-admin').post(
+    // authGuard(UserRole.SUPER_ADMIN),
+    upload.single('file'),
+    (req, res, next) => {
+        req.body = AdminValidation.createSchema.parse(
+            JSON.parse(req.body.data)
+        );
+        return UserController.createAdmin(req, res, next);
+    }
+);
 
 router
     .route('/create-doctor')
