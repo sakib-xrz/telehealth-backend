@@ -80,12 +80,31 @@ const ipnListener = catchAsync(async (req, res) => {
         is_live
     );
 
-    const validationResponse = sslcz.validate({
-        val_id: payload.val_id,
-        format: 'json'
+    const response = sslcz.validate({
+        val_id: payload.val_id
     });
 
-    console.log(validationResponse);
+    await prisma.$transaction(async transactionClient => {
+        const updatedPaymentData =
+            await transactionClient.payment.update({
+                where: {
+                    transactionId: response.tran_id
+                },
+                data: {
+                    status: PaymentStatus.PAID,
+                    paymentGatewayData: response
+                }
+            });
+
+        await transactionClient.appointment.update({
+            where: {
+                id: updatedPaymentData.appointmentId
+            },
+            data: {
+                paymentStatus: PaymentStatus.PAID
+            }
+        });
+    });
 });
 
 const PaymentController = {
