@@ -29,8 +29,6 @@ const generateInvoiceHtml = ({
                 margin: 27mm 16mm 27mm 16mm;
             }
             .invoice-header {
-                background-color: #4a90e2;
-                color: #ffffff;
                 text-align: center;
                 padding: 20px;
                 font-size: 28px;
@@ -41,8 +39,6 @@ const generateInvoiceHtml = ({
                 padding: 20px;
                 color: #333333;
                 line-height: 1.6;
-                border-left: 2px solid #f2f2f2;
-                border-right: 2px solid #f2f2f2;
             }
             .invoice-details {
                 display: flex;
@@ -79,8 +75,7 @@ const generateInvoiceHtml = ({
             .invoice-footer {
                 text-align: center;
                 padding: 20px;
-                background-color: #f2f2f2;
-                color: #888888;
+                color: #888888 !important;
                 font-size: 14px;
                 border-radius: 0 0 8px 8px;
             }

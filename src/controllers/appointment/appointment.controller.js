@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const sendResponse = require('../../shared/sendResponse');
 const pick = require('../../shared/pick');
 const calculatePagination = require('../../helpers/calculatePagination');
-const { UserRole } = require('@prisma/client');
+const { UserRole, PaymentStatus } = require('@prisma/client');
 
 const createAppointment = catchAsync(async (req, res) => {
     const user = req.user;

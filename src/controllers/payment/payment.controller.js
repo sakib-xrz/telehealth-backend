@@ -12,6 +12,8 @@ const {
 } = require('../../shared/invoiceCreator');
 const path = require('path');
 const fs = require('fs');
+const sendResponse = require('../../shared/sendResponse');
+const sendMail = require('../../shared/mailer');
 
 const store_id = config.ssl.store_id;
 const store_passwd = config.ssl.store_pass;
@@ -77,7 +79,14 @@ const initiatePayment = catchAsync(async (req, res) => {
     );
     const sslResponse = await sslcz.init(data);
 
-    res.redirect(sslResponse.GatewayPageURL);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Payment initiated successfully',
+        data: {
+            paymentURL: sslResponse.GatewayPageURL
+        }
+    });
 });
 
 const ipnListener = catchAsync(async (req, res) => {
@@ -186,7 +195,7 @@ const ipnListener = catchAsync(async (req, res) => {
 
     await sendMail(
         paymentInfo.appointment.patient.email,
-        'Payment Invoice',
+        'Invoice for your payment',
         emailBody,
         invoicePath
     );
