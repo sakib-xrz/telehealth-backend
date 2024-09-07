@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const sendResponse = require('../../shared/sendResponse');
 const pick = require('../../shared/pick');
 const calculatePagination = require('../../helpers/calculatePagination');
-const { UserRole } = require('@prisma/client');
+const { UserRole, PaymentStatus } = require('@prisma/client');
 
 const createAppointment = catchAsync(async (req, res) => {
     const user = req.user;
@@ -271,11 +271,67 @@ const updateAppointmentStatus = catchAsync(async (req, res) => {
     });
 });
 
+const removeAppointment = catchAsync(async (_req, _res) => {
+    const currentTime = new Date();
+    const thirtyMinutesBefore = new Date(
+        currentTime.getTime() - 1 * 60000 // 30 minutes before
+    );
+
+    const unpaidAppointments = await prisma.appointment.findMany({
+        where: {
+            createdAt: {
+                lte: thirtyMinutesBefore
+            },
+            paymentStatus: PaymentStatus.UNPAID
+        },
+        include: {
+            doctor: true,
+            schedule: true
+        }
+    });
+
+    const unpaidAppointmentIds = unpaidAppointments.map(
+        appointment => appointment.id
+    );
+
+    await prisma.$transaction(async transactionClient => {
+        await transactionClient.payment.deleteMany({
+            where: {
+                appointmentId: {
+                    in: unpaidAppointmentIds
+                }
+            }
+        });
+
+        await transactionClient.appointment.deleteMany({
+            where: {
+                id: {
+                    in: unpaidAppointmentIds
+                }
+            }
+        });
+
+        for (const unpaidAppointment of unpaidAppointments) {
+            await transactionClient.doctorSchedules.updateMany({
+                where: {
+                    doctorId: unpaidAppointment.doctorId,
+                    scheduleId: unpaidAppointment.scheduleId
+                },
+                data: {
+                    isBooked: false,
+                    appointmentId: null
+                }
+            });
+        }
+    });
+});
+
 const AppointmentController = {
     createAppointment,
     getMyAppointments,
     getAppointmentById,
-    updateAppointmentStatus
+    updateAppointmentStatus,
+    removeAppointment
 };
 
 module.exports = AppointmentController;
