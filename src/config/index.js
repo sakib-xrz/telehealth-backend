@@ -19,6 +19,7 @@ module.exports = {
             process.env.JWT_RESET_PASSWORD_EXPIRES_IN
     },
     frontend_base_url: process.env.FRONTEND_BASE_URL,
+    backend_base_url: process.env.BACKEND_BASE_URL,
     reset_pass_url: process.env.RESET_PASS_URL,
     cloudinary: {
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -35,7 +36,7 @@ module.exports = {
     },
     payment: {
         success_url: process.env.PAYMENT_SUCCESS_URL,
-        fail_url: process.env.PAYMENT_FAILURE_URL,
+        fail_url: process.env.PAYMENT_FAIL_URL,
         cancel_url: process.env.PAYMENT_CANCEL_URL
     }
 };

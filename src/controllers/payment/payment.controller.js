@@ -37,11 +37,10 @@ const initiatePayment = catchAsync(async (req, res) => {
         total_amount: paymentInfo.amount,
         currency: 'BDT',
         tran_id: paymentInfo.transactionId,
-        success_url:
-            'http://localhost:8000/api/v1/payments/ipn_listener',
-        fail_url: `${config.frontend_base_url}/${config.payment.fail_url}`,
-        cancel_url: `${config.frontend_base_url}/${config.payment.cancel_url}`,
-        ipn_url: 'http://localhost:3030/ipn',
+        success_url: `${config.backend_base_url}/payments/ipn_listener`,
+        fail_url: `${config.backend_base_url}/payments/ipn_listener`,
+        cancel_url: `${config.backend_base_url}/payments/ipn_listener`,
+        ipn_url: `${config.backend_base_url}/payments/ipn_listener`,
         shipping_method: 'N/A',
         product_name: 'Appointment',
         product_category: 'N/A',
@@ -83,12 +82,28 @@ const initiatePayment = catchAsync(async (req, res) => {
 const ipnListener = catchAsync(async (req, res) => {
     const payload = req.body;
 
-    if (!payload.val_id || !payload.status === 'VALID') {
+    if (!payload.val_id || payload.status !== 'VALID') {
         console.log('Invalid IPN request');
+        console.log({
+            val_id: payload.val_id,
+            status: payload.status
+        });
 
-        return {
+        if (payload.status === 'FAILED') {
+            return res.redirect(
+                `${config.frontend_base_url}/${config.payment.fail_url}`
+            );
+        }
+
+        if (payload.status === 'CANCELLED') {
+            return res.redirect(
+                `${config.frontend_base_url}/${config.payment.cancel_url}`
+            );
+        }
+
+        return res.status(httpStatus.BAD_REQUEST).json({
             message: 'Invalid IPN request'
-        };
+        });
     }
 
     const sslcz = new SSLCommerzPayment(
@@ -103,16 +118,17 @@ const ipnListener = catchAsync(async (req, res) => {
 
     if (response.status !== 'VALID') {
         console.log('Payment validation failed');
-        return {
-            message: 'Payment validation failed'
-        };
+
+        return res.redirect(
+            `${config.frontend_base_url}/${config.payment.fail_url}`
+        );
     }
 
     await prisma.$transaction(async transactionClient => {
         const updatedPaymentData =
             await transactionClient.payment.update({
                 where: {
-                    transactionId: response.tran_id // Now valid because it's unique
+                    transactionId: response.tran_id
                 },
                 data: {
                     status: PaymentStatus.PAID,
@@ -122,7 +138,7 @@ const ipnListener = catchAsync(async (req, res) => {
 
         await transactionClient.appointment.update({
             where: {
-                id: updatedPaymentData.appointmentId // Assuming this is the relation
+                id: updatedPaymentData.appointmentId
             },
             data: {
                 paymentStatus: PaymentStatus.PAID
