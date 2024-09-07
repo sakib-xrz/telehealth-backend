@@ -1,10 +1,12 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const cron = require('node-cron');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const router = require('./routers/index.js');
 const globalErrorHandler = require('./middlewares/globalErrorHandler.js');
+const AppointmentController = require('./controllers/appointment/appointment.controller.js');
 
 const app = express();
 
@@ -15,6 +17,14 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+cron.schedule('* * * * *', () => {
+    try {
+        AppointmentController.removeAppointment();
+    } catch (error) {
+        console.log('Error while cancelling appointments', error);
+    }
+});
 
 // routes
 app.use('/api/v1', router);
