@@ -221,10 +221,61 @@ const getAppointmentById = catchAsync(async (req, res) => {
     });
 });
 
+const updateAppointmentStatus = catchAsync(async (req, res) => {
+    const user = req.user;
+
+    const { appointmentId } = req.params;
+
+    const appointment = await prisma.appointment.findUnique({
+        where: {
+            id: appointmentId
+        },
+        include: {
+            doctor: true
+        }
+    });
+
+    if (!appointment) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            'Appointment not found'
+        );
+    }
+
+    if (
+        user.role === UserRole.DOCTOR &&
+        user.email !== appointment.doctor.email
+    ) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            'You are not authorized to update this appointment'
+        );
+    }
+
+    const { status } = req.body;
+
+    const updatedAppointment = await prisma.appointment.update({
+        where: {
+            id: appointmentId
+        },
+        data: {
+            status
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Appointment status updated successfully',
+        data: updatedAppointment
+    });
+});
+
 const AppointmentController = {
     createAppointment,
     getMyAppointments,
-    getAppointmentById
+    getAppointmentById,
+    updateAppointmentStatus
 };
 
 module.exports = AppointmentController;

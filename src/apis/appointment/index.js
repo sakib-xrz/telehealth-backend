@@ -3,7 +3,7 @@ const AppointmentController = require('../../controllers/appointment/appointment
 const authGuard = require('../../middlewares/authGuard');
 const { UserRole } = require('@prisma/client');
 const validateRequest = require('../../middlewares/validateRequest');
-const AppointmentValidation = require('../../constants/appointment.constant');
+const AppointmentValidation = require('../../schemas/appointment');
 
 const router = Router();
 
@@ -27,6 +27,18 @@ router
     .get(
         authGuard(UserRole.PATIENT, UserRole.DOCTOR),
         AppointmentController.getAppointmentById
+    );
+
+router
+    .route('/:appointmentId/status')
+    .patch(
+        authGuard(
+            UserRole.SUPER_ADMIN,
+            UserRole.ADMIN,
+            UserRole.DOCTOR
+        ),
+        validateRequest(AppointmentValidation.updateStatusSchema),
+        AppointmentController.updateAppointmentStatus
     );
 
 module.exports = router;
