@@ -274,7 +274,7 @@ const updateAppointmentStatus = catchAsync(async (req, res) => {
 const removeAppointment = catchAsync(async (_req, _res) => {
     const currentTime = new Date();
     const thirtyMinutesBefore = new Date(
-        currentTime.getTime() - 1 * 60000 // 30 minutes before
+        currentTime.getTime() - 30 * 60000 // 30 minutes before
     );
 
     const unpaidAppointments = await prisma.appointment.findMany({

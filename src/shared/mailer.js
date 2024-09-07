@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
 const config = require('../config/index');
+const fs = require('fs');
+const path = require('path');
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -14,12 +16,21 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const sendMail = async (to, subject, body) => {
+const sendMail = async (to, subject, body, attachmentPath) => {
+    const attachment = attachmentPath
+        ? {
+              filename: path.basename(attachmentPath),
+              content: fs.readFileSync(attachmentPath),
+              encoding: 'base64'
+          }
+        : undefined;
+
     const mailOptions = {
         from: '"Telehealth" <sakibxrz21@gmail.com>',
         to,
         subject,
-        html: body
+        html: body,
+        attachments: attachment ? [attachment] : []
     };
 
     await transporter.sendMail(mailOptions);

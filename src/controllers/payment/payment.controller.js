@@ -1,11 +1,17 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../../shared/catchAsync');
-const sendResponse = require('../../shared/sendResponse');
+const { format } = require('date-fns');
 const SSLCommerzPayment = require('sslcommerz-lts');
 const config = require('../../config');
 const prisma = require('../../shared/prisma');
 const { PaymentStatus } = require('@prisma/client');
 const ApiError = require('../../error/ApiError');
+const {
+    generateInvoiceHtml,
+    generatePdfInvoice
+} = require('../../shared/invoiceCreator');
+const path = require('path');
+const fs = require('fs');
 
 const store_id = config.ssl.store_id;
 const store_passwd = config.ssl.store_pass;
@@ -71,12 +77,7 @@ const initiatePayment = catchAsync(async (req, res) => {
     );
     const sslResponse = await sslcz.init(data);
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Payment initiated successfully',
-        data: { paymentUrl: sslResponse.GatewayPageURL }
-    });
+    res.redirect(sslResponse.GatewayPageURL);
 });
 
 const ipnListener = catchAsync(async (req, res) => {
@@ -146,7 +147,51 @@ const ipnListener = catchAsync(async (req, res) => {
         });
     });
 
-    console.log('Payment successful');
+    const paymentInfo = await prisma.payment.findFirst({
+        where: {
+            transactionId: response.tran_id
+        },
+        include: {
+            appointment: {
+                include: {
+                    schedule: true,
+                    patient: true,
+                    doctor: true
+                }
+            }
+        }
+    });
+
+    const invoiceData = {
+        patientName: paymentInfo.appointment.patient?.name,
+        patientEmail: paymentInfo.appointment.patient.email,
+        patientAddress: paymentInfo.appointment.patient?.address,
+        transactionId: paymentInfo.transactionId,
+        doctorName: paymentInfo.appointment.doctor?.name,
+        appointmentDate: format(
+            paymentInfo.appointment.schedule.startDateTime,
+            'PPP'
+        ),
+        amount: parseFloat(paymentInfo.amount).toFixed(2)
+    };
+
+    const invoiceHtml = generateInvoiceHtml(invoiceData);
+
+    const invoicePath = path.join(__dirname, 'invoice.pdf');
+
+    await generatePdfInvoice(invoiceHtml, invoicePath);
+
+    const emailBody =
+        '<p>Thank you for your payment. Please find your invoice attached.</p>';
+
+    await sendMail(
+        paymentInfo.appointment.patient.email,
+        'Payment Invoice',
+        emailBody,
+        invoicePath
+    );
+
+    fs.unlinkSync(invoicePath);
 
     res.redirect(
         `${config.frontend_base_url}/${config.payment.success_url}`
