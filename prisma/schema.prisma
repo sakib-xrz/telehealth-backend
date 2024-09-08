@@ -266,7 +266,8 @@ model Prescription {
   appointmentId String    @unique
   doctorId      String
   patientId     String
-  instructions  String
+  medicines     Json
+  tests         Json
   followUpDate  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
