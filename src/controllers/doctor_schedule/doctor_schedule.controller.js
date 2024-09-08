@@ -137,7 +137,8 @@ const getDoctorSelectedSchedules = catchAsync(async (req, res) => {
                     startDateTime: true,
                     endDateTime: true
                 }
-            }
+            },
+            appointment: true
         },
         skip,
         take: limit,
