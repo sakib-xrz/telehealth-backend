@@ -186,7 +186,10 @@ const ipnListener = catchAsync(async (req, res) => {
 
     const invoiceHtml = generateInvoiceHtml(invoiceData);
 
-    const invoicePath = path.join(__dirname, 'invoice.pdf');
+    const invoicePath = path.join(
+        __dirname,
+        '../../../invoices/invoice.pdf'
+    );
 
     await generatePdfInvoice(invoiceHtml, invoicePath);
 
@@ -205,7 +208,10 @@ const ipnListener = catchAsync(async (req, res) => {
         invoicePath
     );
 
-    fs.unlinkSync(invoicePath);
+    // Delete the temporary PDF file asynchronously
+    fs.unlink(invoicePath, err => {
+        if (err) console.error('Error deleting the PDF file:', err);
+    });
 
     res.redirect(
         `${config.frontend_base_url}/${config.payment.success_url}`
