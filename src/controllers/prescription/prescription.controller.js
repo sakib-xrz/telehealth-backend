@@ -15,6 +15,11 @@ const path = require('path');
 const fs = require('fs');
 const { format } = require('date-fns');
 const sendMail = require('../../shared/mailer');
+const calculatePagination = require('../../helpers/calculatePagination');
+const pick = require('../../shared/pick');
+const {
+    prescriptionFilterableFields
+} = require('../../constants/prescription.constant');
 
 const createPrescription = catchAsync(async (req, res) => {
     const user = req.user;
@@ -133,8 +138,125 @@ const createPrescription = catchAsync(async (req, res) => {
     });
 });
 
+const getMyPrescriptions = catchAsync(async (req, res) => {
+    const user = req.user;
+    const options = pick(req.query, [
+        'limit',
+        'page',
+        'sortBy',
+        'sortOrder'
+    ]);
+    const { limit, page, skip } = calculatePagination(options);
+
+    const result = await prisma.prescription.findMany({
+        where: {
+            patient: {
+                email: user?.email
+            }
+        },
+        skip,
+        take: limit,
+        orderBy:
+            options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { createdAt: 'desc' },
+        include: {
+            doctor: true,
+            patient: true,
+            appointment: true
+        }
+    });
+
+    const total = await prisma.prescription.count({
+        where: {
+            patient: {
+                email: user?.email
+            }
+        }
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'My prescriptions data retrieved successfully',
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    });
+});
+
+const getAllPrescriptions = catchAsync(async (req, res) => {
+    const filters = pick(req.query, prescriptionFilterableFields);
+    const options = pick(req.query, [
+        'limit',
+        'page',
+        'sortBy',
+        'sortOrder'
+    ]);
+
+    const { limit, page, skip } = calculatePagination(options);
+    const { patientEmail, doctorEmail } = filters;
+    const andConditions = [];
+
+    if (patientEmail) {
+        andConditions.push({
+            patient: {
+                email: patientEmail
+            }
+        });
+    }
+
+    if (doctorEmail) {
+        andConditions.push({
+            doctor: {
+                email: doctorEmail
+            }
+        });
+    }
+
+    const whereConditions =
+        andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const result = await prisma.prescription.findMany({
+        where: whereConditions,
+        skip,
+        take: limit,
+        orderBy:
+            options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : {
+                      createdAt: 'desc'
+                  },
+        include: {
+            doctor: true,
+            patient: true,
+            appointment: true
+        }
+    });
+    const total = await prisma.prescription.count({
+        where: whereConditions
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Prescriptions data retrieved successfully',
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    });
+});
+
 const PrescriptionController = {
-    createPrescription
+    createPrescription,
+    getMyPrescriptions,
+    getAllPrescriptions
 };
 
 module.exports = PrescriptionController;

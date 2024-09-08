@@ -13,6 +13,17 @@ router
         authGuard(UserRole.DOCTOR),
         validateRequest(PrescriptionValidation.createPrescription),
         PrescriptionController.createPrescription
+    )
+    .get(
+        authGuard(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+        PrescriptionController.getAllPrescriptions
+    );
+
+router
+    .route('/my-prescriptions')
+    .get(
+        authGuard(UserRole.PATIENT),
+        PrescriptionController.getMyPrescriptions
     );
 
 module.exports = router;
