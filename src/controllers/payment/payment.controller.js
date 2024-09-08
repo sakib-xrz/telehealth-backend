@@ -191,11 +191,16 @@ const ipnListener = catchAsync(async (req, res) => {
     await generatePdfInvoice(invoiceHtml, invoicePath);
 
     const emailBody =
-        '<p>Thank you for your payment. Please find your invoice attached.</p>';
+        `Dear ${paymentInfo.appointment.patient.name},<br><br>` +
+        `Your payment for the appointment with <b>${paymentInfo.appointment.doctor.name}</b> on <b>${format(paymentInfo.appointment.schedule.startDateTime, 'PPP')}</b> has been successfully processed.<br><br>` +
+        `Please find the invoice attached with this email.<br><br>` +
+        `Thank you for choosing us.<br><br>` +
+        `Regards,<br>` +
+        `Telehealth`;
 
     await sendMail(
         paymentInfo.appointment.patient.email,
-        'Invoice for your payment',
+        'Appointment Payment Invoice',
         emailBody,
         invoicePath
     );
