@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const router = require('./routers/index.js');
 const globalErrorHandler = require('./middlewares/globalErrorHandler.js');
 const AppointmentController = require('./controllers/appointment/appointment.controller.js');
+const removeTrashFiles = require('./helpers/removeTrashFiles.js');
 
 const app = express();
 
@@ -23,6 +24,14 @@ cron.schedule('* * * * *', () => {
         AppointmentController.removeAppointment();
     } catch (error) {
         console.log('Error while cancelling appointments', error);
+    }
+});
+
+cron.schedule('0 0 * * *', () => {
+    try {
+        removeTrashFiles();
+    } catch (error) {
+        console.log('Error while deleting trash files', error);
     }
 });
 
