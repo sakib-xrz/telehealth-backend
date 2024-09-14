@@ -13,15 +13,57 @@ For detailed information about each API endpoint, request parameters, responses,
 
 ---
 
-## Getting Started
+## Getting Started Locally
 
-1. **Base URL**: Ensure all requests are made to the base URL provided.
-2. **Authentication**: Follow the authentication process described in the Postman documentation.
-3. **Request Structure**: Refer to the Postman documentation for detailed request structures and parameters.
+To run this project locally, follow these steps:
+
+1. **Clone the Repository**
+
+    ```bash
+    https://github.com/sakib-xrz/telehealth-backend.git
+    ```
+
+2. **Install Dependencies**
+
+    Navigate to the project directory and install the dependencies using Yarn:
+
+    ```bash
+    cd telehealth-backend
+    yarn install
+    ```
+
+3. **Set Up Environment Variables**
+
+    Create a `.env` file in the root directory. You can get a sample configuration from the `.env.example` file:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Update the `.env` file with your local configuration.
+
+4. **Set Up PostgreSQL**
+
+    Make sure PostgreSQL is installed on your local machine. You can download it from the [official PostgreSQL website](https://www.postgresql.org/download/).
+
+5. **Run Database Migrations**
+
+    Run the following command to apply database migrations:
+
+    ```bash
+    npx prisma migrate dev
+    ```
+
+6. **Start the Project**
+
+    Finally, start the project with:
+
+    ```bash
+    yarn dev
+    ```
 
 ---
 
 If you have any questions or need further assistance, please contact support.
 
 Happy coding!
-
