@@ -17,7 +17,7 @@ const seedSuperAdmin = async () => {
 
         const hashedPassword = await bcrypt.hash('superadmin', 12);
 
-        const superAdminData = await prisma.user.create({
+        await prisma.user.create({
             data: {
                 email: 'super@admin.com',
                 password: hashedPassword,
