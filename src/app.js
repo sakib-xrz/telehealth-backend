@@ -8,6 +8,7 @@ const router = require('./routers/index.js');
 const globalErrorHandler = require('./middlewares/globalErrorHandler.js');
 const AppointmentController = require('./controllers/appointment/appointment.controller.js');
 const removeTrashFiles = require('./helpers/removeTrashFiles.js');
+const setupSwagger = require('./swagger.js');
 
 const app = express();
 
@@ -34,6 +35,9 @@ cron.schedule('0 0 * * *', () => {
         console.log('Error while deleting trash files', error);
     }
 });
+
+// setup swagger
+setupSwagger(app);
 
 // routes
 app.use('/api/v1', router);
