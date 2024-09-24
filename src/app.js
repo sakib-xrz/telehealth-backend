@@ -12,7 +12,15 @@ const removeTrashFiles = require('./helpers/removeTrashFiles.js');
 const app = express();
 
 // middlewares
-app.use(cors());
+app.use(
+    cors({
+        origin: ['http://localhost:3000'],
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        allowedHeaders:
+            'Content-Type, Authorization, Origin, X-Requested-With, Accept',
+        credentials: true
+    })
+);
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
