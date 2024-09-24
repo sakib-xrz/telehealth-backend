@@ -76,9 +76,9 @@ const login = catchAsync(async (req, res) => {
 });
 
 const refreshToken = catchAsync(async (req, res) => {
-    const { refreshToken } = req.cookies;
+    const { REFRESH_TOKEN } = req.cookies;
 
-    if (!refreshToken) {
+    if (!REFRESH_TOKEN) {
         throw new ApiError(
             httpStatus.BAD_REQUEST,
             'Refresh token is required'
@@ -88,7 +88,10 @@ const refreshToken = catchAsync(async (req, res) => {
     let payload = null;
 
     try {
-        payload = jwt.verify(refreshToken, config.jwt.refresh_secret);
+        payload = jwt.verify(
+            REFRESH_TOKEN,
+            config.jwt.refresh_secret
+        );
     } catch (error) {
         throw new ApiError(
             httpStatus.UNAUTHORIZED,
