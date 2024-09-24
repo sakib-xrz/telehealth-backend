@@ -59,7 +59,7 @@ const login = catchAsync(async (req, res) => {
         }
     );
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('REFRESH_TOKEN', refreshToken, {
         secure: false,
         httpOnly: true
     });
@@ -176,7 +176,7 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const logout = catchAsync(async (_req, res) => {
-    res.clearCookie('refreshToken');
+    res.clearCookie('REFRESH_TOKEN');
 
     sendResponse(res, {
         success: true,

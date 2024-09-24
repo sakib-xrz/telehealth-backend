@@ -13,6 +13,7 @@ const {
 const pick = require('../../shared/pick.js');
 const buildQueryConditions = require('../../helpers/buildQueryConditions.js');
 const ApiError = require('../../error/ApiError.js');
+const jwt = require('jsonwebtoken');
 
 const getAllUsers = catchAsync(async (req, res) => {
     const filters = pick(req.query, userFilterableFields);
@@ -317,17 +318,19 @@ const createDoctor = catchAsync(async (req, res) => {
 });
 
 const createPatient = catchAsync(async (req, res) => {
-    const { name, email, password, contactNumber } = req.body;
+    const { name, email, password, contactNumber, address } =
+        req.body;
+    const file = req.file;
 
     let profilePhoto;
 
+    // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(
         password,
         Number(config.bcrypt_salt_rounds)
     );
 
-    const file = req.file;
-
+    // Prepare user and patient data
     const userData = {
         email,
         password: hashedPassword,
@@ -339,59 +342,95 @@ const createPatient = catchAsync(async (req, res) => {
         name,
         email,
         contactNumber,
-        address: req.body?.address
+        address
     };
 
+    // Perform only database-related operations inside the transaction
     const result = await prisma.$transaction(
         async transactionClient => {
+            // Create user in the database
             const user = await transactionClient.user.create({
                 data: userData
             });
 
-            if (file) {
-                const fileName = `${Date.now()}-${file.originalname}`;
-                const fileType = file.mimetype.split('/').pop();
-
-                const cloudinaryResponse =
-                    await handelFile.uploadToCloudinary(file, {
-                        folder: 'user/patient',
-                        filename_override: fileName,
-                        format: fileType,
-                        public_id: user.id,
-                        overwrite: true,
-                        invalidate: true
-                    });
-
-                profilePhoto = cloudinaryResponse?.secure_url;
-            }
-
+            // Create patient record in the database
             const patient = await transactionClient.patient.create({
-                data: {
-                    ...patientData,
-                    profilePhoto
-                }
+                data: patientData
             });
 
             return {
-                id: patient.id,
                 userId: user.id,
+                patientId: patient.id,
                 name: patient.name,
                 email: user.email,
                 contactNumber: patient.contactNumber,
-                profilePhoto: patient.profilePhoto,
                 role: user.role,
                 status: user.status,
                 needPasswordChange: user.needPasswordChange,
                 address: patient.address
             };
+        },
+        { timeout: 10000 }
+    ); // Increase the timeout to 10 seconds
+
+    // Handle profile photo upload separately, outside the transaction
+    if (file) {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        const fileType = file.mimetype.split('/').pop();
+
+        const cloudinaryResponse =
+            await handelFile.uploadToCloudinary(file, {
+                folder: 'user/patient',
+                filename_override: fileName,
+                format: fileType,
+                public_id: result.userId,
+                overwrite: true,
+                invalidate: true
+            });
+
+        profilePhoto = cloudinaryResponse?.secure_url;
+
+        // Update the patient record with the profile photo URL after the upload
+        await prisma.patient.update({
+            where: { id: result.patientId },
+            data: { profilePhoto }
+        });
+    }
+
+    // Generate JWT access and refresh tokens
+    const payload = {
+        id: result.userId,
+        email: result.email,
+        role: result.role
+    };
+
+    const accessToken = jwt.sign(payload, config.jwt.secret, {
+        expiresIn: config.jwt.expires_in
+    });
+
+    const refreshToken = jwt.sign(
+        payload,
+        config.jwt.refresh_secret,
+        {
+            expiresIn: config.jwt.refresh_expires_in
         }
     );
 
+    // Set refresh token in cookies
+    res.cookie('REFRESH_TOKEN', refreshToken, {
+        secure: false,
+        httpOnly: true
+    });
+
+    // Send response
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
-        message: 'Patient Created successfully!',
-        data: result
+        message: 'Account created successfully!',
+        data: {
+            accessToken,
+            needPasswordChange: result.needPasswordChange
+        }
     });
 });
 
