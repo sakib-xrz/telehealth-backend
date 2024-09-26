@@ -14,7 +14,10 @@ const app = express();
 // middlewares
 app.use(
     cors({
-        origin: ['http://localhost:3000, "http://192.168.0.109:3000'],
+        origin: [
+            'http://localhost:3000',
+            'http://192.168.0.109:3000'
+        ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         allowedHeaders:
             'Content-Type, Authorization, Origin, X-Requested-With, Accept',
