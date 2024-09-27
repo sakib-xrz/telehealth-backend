@@ -60,8 +60,9 @@ const login = catchAsync(async (req, res) => {
     );
 
     res.cookie('REFRESH_TOKEN', refreshToken, {
-        secure: false,
-        httpOnly: true
+        secure: true,
+        httpOnly: true,
+        sameSite: 'Strict'
     });
 
     sendResponse(res, {

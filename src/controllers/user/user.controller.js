@@ -418,8 +418,9 @@ const createPatient = catchAsync(async (req, res) => {
 
     // Set refresh token in cookies
     res.cookie('REFRESH_TOKEN', refreshToken, {
-        secure: false,
-        httpOnly: true
+        secure: true,
+        httpOnly: true,
+        sameSite: 'Strict'
     });
 
     // Send response
