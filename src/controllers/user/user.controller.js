@@ -422,7 +422,7 @@ const createPatient = catchAsync(async (req, res) => {
         // httpOnly: true,
         // sameSite: 'Strict'
         secure: true,
-        httpOnly: false,
+        httpOnly: true,
         sameSite: 'None'
     });
 
