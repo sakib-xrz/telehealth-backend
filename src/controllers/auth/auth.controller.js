@@ -63,7 +63,7 @@ const login = catchAsync(async (req, res) => {
         // secure: true,
         // httpOnly: true,
         // sameSite: 'Strict'
-        secure: false,
+        secure: true,
         httpOnly: false,
         sameSite: 'None'
     });
