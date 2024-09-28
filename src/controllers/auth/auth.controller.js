@@ -60,12 +60,10 @@ const login = catchAsync(async (req, res) => {
     );
 
     res.cookie('REFRESH_TOKEN', refreshToken, {
-        // secure: true,
-        // httpOnly: true,
-        // sameSite: 'Strict'
         secure: true,
         httpOnly: true,
-        sameSite: 'None'
+        sameSite:
+            config.node_env === 'development' ? 'Strict' : 'None'
     });
 
     sendResponse(res, {

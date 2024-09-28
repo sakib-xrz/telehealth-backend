@@ -418,12 +418,10 @@ const createPatient = catchAsync(async (req, res) => {
 
     // Set refresh token in cookies
     res.cookie('REFRESH_TOKEN', refreshToken, {
-        // secure: true,
-        // httpOnly: true,
-        // sameSite: 'Strict'
         secure: true,
         httpOnly: true,
-        sameSite: 'None'
+        sameSite:
+            config.node_env === 'development' ? 'Strict' : 'None'
     });
 
     // Send response
