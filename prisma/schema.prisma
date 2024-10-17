@@ -73,7 +73,7 @@ model Admin {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
-  profilePhoto  String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
+  profilePhoto  String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1729165467/user/default/default_user.png")
   contactNumber String
   isDeleted     Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -88,7 +88,7 @@ model Doctor {
   id                  String   @id @default(uuid())
   name                String
   email               String   @unique
-  profilePhoto        String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
+  profilePhoto        String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1729165467/user/default/default_user.png")
   contactNumber       String
   address             String?  @default("")
   registrationNumber  String
@@ -117,7 +117,7 @@ model Patient {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
-  profilePhoto  String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1724704575/user/default/default_user_zl3dmh.jpg")
+  profilePhoto  String?  @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1729165467/user/default/default_user.png")
   contactNumber String
   address       String?  @default("")
   isDeleted     Boolean  @default(false)
@@ -137,7 +137,7 @@ model Patient {
 model Specialties {
   id                String            @id @default(uuid())
   title             String
-  icon              String            @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1725102873/specialties/Default_xfr8sp.png")
+  icon              String            @default("https://res.cloudinary.com/dwcb6qft9/image/upload/v1729165892/empty/no-image_ixbgot.jpg")
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   doctorSpecialties DoctorSpecialty[]
