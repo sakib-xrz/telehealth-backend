@@ -118,6 +118,7 @@ const updateAdmin = catchAsync(async (req, res) => {
 
 const deleteAdmin = catchAsync(async (req, res) => {
     const adminId = req.params.id;
+    const { id, role } = req.user;
 
     const isAdminExists = await prisma.admin.findUnique({
         where: {
@@ -130,6 +131,20 @@ const deleteAdmin = catchAsync(async (req, res) => {
 
     if (!isAdminExists) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found');
+    }
+
+    if (isAdminExists.user.id === id) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            'You cannot delete yourself'
+        );
+    }
+
+    if (isAdminExists.user.role === role) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            'You cannot delete a super admin'
+        );
     }
 
     await prisma.$transaction(async transactionClient => {
